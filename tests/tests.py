@@ -1,5 +1,8 @@
 import sys
-sys.path.append('../automation')
+import os
+directory = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(directory)
+sys.path.append(parent)
 import cppm_helper
 
 def test_extract_mac_oui_extracts_half_of_colon_separated_mac():
