@@ -10,3 +10,6 @@ test_files
 __pycache__
 .pytest_cache
 *.pyc
+
+#local runners
+local_runner.py

@@ -60,30 +60,3 @@ def add_mac_vendor_to_devices(devices:dict[dict[str,str]], mac_vendors:dict[str,
             devices[mac]['mac_vendor'] = mac_vendors[mac_oui]
         else:
             devices[mac]['mac_vendor'] = 'na'
-
-mac_address_template = './templates/sh_mac_address.template' 
-arp_template = './templates/sh_arp.template'
-output_file = './test_files/mac-arp-table-CX.txt'
-
-with open(mac_address_template) as mac_tf, open(output_file) as of:
-    re_mac_table = textfsm.TextFSM(mac_tf)
-    sh_mac_address_result = re_mac_table.ParseText(of.read())
-
-with open(arp_template) as arp_tf, open(output_file) as of:
-    re_arp_table = textfsm.TextFSM(arp_tf)
-    sh_arp_result = re_arp_table.ParseText(of.read())
-
-with open('./show_files/MAC_OUI.csv', 'r', encoding='utf-8') as mac_f:
-    mac_vendors = {}
-    lines = mac_f.readlines()
-    for line in lines[1:]:
-        oui = line[:6].lower()
-        company = line[7:].replace('\n','')
-        mac_vendors[oui] = company 
-
-devices = extract_device_info_from_sh_mac_address(sh_mac_address_result)
-add_ip_information_to_devices(sh_arp_result, devices)
-add_mac_oui_to_devices(devices)
-add_mac_vendor_to_devices(devices, mac_vendors)
-
-print('done.')

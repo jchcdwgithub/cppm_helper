@@ -5,6 +5,8 @@ parent = os.path.dirname(directory)
 sys.path.append(parent)
 import cppm_helper
 
+print(parent)
+
 def test_extract_mac_oui_extracts_half_of_colon_separated_mac():
     mac = '00:1b:bc:16:00:c3'
     expected = '001bbc'
