@@ -4,9 +4,9 @@
 *.xlsx
 
 #Test text files
-*.txt
+test_files
 
 #pycache
-__pycache__/
+__pycache__
 .pytest_cache
 *.pyc

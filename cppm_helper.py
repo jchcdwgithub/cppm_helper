@@ -63,7 +63,7 @@ def add_mac_vendor_to_devices(devices:dict[dict[str,str]], mac_vendors:dict[str,
 
 mac_address_template = './templates/sh_mac_address.template' 
 arp_template = './templates/sh_arp.template'
-output_file = 'mac-arp-table-CX.txt'
+output_file = './test_files/mac-arp-table-CX.txt'
 
 with open(mac_address_template) as mac_tf, open(output_file) as of:
     re_mac_table = textfsm.TextFSM(mac_tf)
