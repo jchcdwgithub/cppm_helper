@@ -1,0 +1,7 @@
+Value MAC ([0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5})
+Value VLAN (\d+)
+Value TYPE (\w+)
+Value PORT (\d/\d/\d+|lag\d+)
+
+Start
+ ^${MAC} +${VLAN} +${TYPE} +${PORT}.* -> Record

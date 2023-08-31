@@ -1,0 +1,12 @@
+# created by virtualenv automatically
+
+#Excel Files
+*.xlsx
+
+#Test text files
+*.txt
+
+#pycache
+__pycache__/
+.pytest_cache
+*.pyc
