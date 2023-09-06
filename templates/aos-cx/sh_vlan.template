@@ -1,0 +1,9 @@
+Value VLAN (\d+)
+Value VLAN_NAME (\w+)
+Value STATUS (\w+)
+Value REASON (\w+)
+Value TYPE (default|dynamic|static)
+Value INTERFACES ([0-9,-/]+)
+
+Start
+ ^${VLAN} +${VLAN_NAME} +${STATUS} +${REASON} +${TYPE} +${INTERFACES}.* -> Record
