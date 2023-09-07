@@ -246,7 +246,7 @@ def write_table_to_excel_worksheet(worksheet, table:dict[str, list[list]], start
     
     return current_row+table_rows+1
 
-def write_tables_to_excel_worksheet(excel_filename: str, worksheet_name:str, tables:list[list[list]]):
+def write_tables_to_excel_worksheets(excel_filename: str, worksheet_names:list[str], tables_sets:list[list[list[list]]]):
     ''' Takes a set of tables and writes them onto the same sheet in an excel file.
         Each element in the Tables list corresponds to a list of tables to be written vertically
         in relation to each other. Each table is a dictionary that contains the name, headers and
@@ -254,28 +254,24 @@ def write_tables_to_excel_worksheet(excel_filename: str, worksheet_name:str, tab
     '''
     with pandas.ExcelWriter(excel_filename) as writer:
         workbook = writer.book
-        worksheet = workbook.add_worksheet(worksheet_name)
-        writer.sheets[worksheet_name] = worksheet
-        table_title_cell_format = workbook.add_format({'bg_color': '#D9D9D9', 'font_size': 16, 'bold':True})
-        next_table_row = 0
-        next_table_col = 0
-
-        for tables_in_set in tables:
-            #find table with the most columns
-            max_columns = find_max_number_of_columns_among_all_tables_in_set(tables_in_set)
-            #find largest width for all tables in the same set
-            widths = find_largest_width_among_multiple_tables(max_columns, tables_in_set)
-            #set the columns to the widest widths
-            for col_offset,width in enumerate(widths):
-                column = next_table_col + col_offset
-                worksheet.set_column(column,column,width)
-
-            for table in tables_in_set:
-                next_table_row = write_table_to_excel_worksheet(worksheet, table, (next_table_row, next_table_col), table_title_cell_format)
-
-            # back to top for next set
+        for worksheet_name,tables in zip(worksheet_names,tables_sets):
+            worksheet = workbook.add_worksheet(worksheet_name)
+            writer.sheets[worksheet_name] = worksheet
+            table_title_cell_format = workbook.add_format({'bg_color': '#D9D9D9', 'font_size': 16, 'bold':True})
             next_table_row = 0
-            #The next column must start after the table with the largest number of columns from the previous set
-            next_table_col += max_columns + 2
+            next_table_col = 0
+
+            for tables_in_set in tables:
+                max_columns = find_max_number_of_columns_among_all_tables_in_set(tables_in_set)
+                widths = find_largest_width_among_multiple_tables(max_columns, tables_in_set)
+                for col_offset,width in enumerate(widths):
+                    column = next_table_col + col_offset
+                    worksheet.set_column(column,column,width)
+
+                for table in tables_in_set:
+                    next_table_row = write_table_to_excel_worksheet(worksheet, table, (next_table_row, next_table_col), table_title_cell_format)
+
+                next_table_row = 0
+                next_table_col += max_columns + 2
         
         writer.save()

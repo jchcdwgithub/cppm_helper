@@ -18,21 +18,25 @@ def get_vlan_from_port_info(port_info:str) -> str:
         vlan_id = 'na'
     return vlan_id
 
-def extract_device_info_from_sh_mac_address(sh_mac_output:list[list[str]]) -> dict[dict[str, str]]:
+def extract_device_info_from_sh_mac_address(sh_mac_output:list[list[str]], sh_mac_headers:list[str]) -> dict[dict[str, str]]:
     devices = {} 
+    mac_index = sh_mac_headers.index('MAC')
+    vlan_index = sh_mac_headers.index('VLAN')
+    port_index = sh_mac_headers.index('PORT')
     for line in sh_mac_output:
         current_device = {}
-        current_device_mac = line[0]
-        current_device['vlan'] = line[1]
-        current_device['type'] = line[2]
-        current_device['physical_port'] = line[3]
+        current_device_mac = line[mac_index]
+        current_device['vlan'] = line[vlan_index]
+        current_device['physical_port'] = line[port_index]
         devices[current_device_mac] = current_device
     return devices
 
-def add_ip_information_to_devices(arp_info:list[list[str]], devices:dict[dict[str, str]]) -> None:
+def add_ip_information_to_devices(arp_info:list[list[str]], arp_info_headers:list[str], devices:dict[dict[str, str]]) -> None:
+    mac_index = arp_info_headers.index('MAC')
+    ip_index = arp_info_headers.index('IP')
     for arp_entry in arp_info:
-        current_mac = arp_entry[1]
-        current_ip = arp_entry[0]
+        current_mac = arp_entry[mac_index]
+        current_ip = arp_entry[ip_index]
         if current_mac in devices:
             devices[current_mac]['ip'] = current_ip
 
@@ -77,8 +81,9 @@ def add_information_to_devices_from_tables(device_tables:list[list[str]], mac_ve
     Creates a dictionary of MAC to device details. The details are taken from the extracted tables passed in the table_results parameter.
     This table should have three tables: the sh_mac_address, sh_vlan and sh_arp tables.
     '''
-    devices = extract_device_info_from_sh_mac_address(device_tables['sh_mac_address']['results'])
-    add_ip_information_to_devices(device_tables['sh_arp']['results'], devices)
+    devices = extract_device_info_from_sh_mac_address(device_tables['sh_mac_address']['results'], device_tables['sh_mac_address']['headers'])
+    if 'sh_arp' in device_tables:
+        add_ip_information_to_devices(device_tables['sh_arp']['results'], device_tables['sh_arp']['headers'],devices)
     add_mac_oui_to_devices(devices)
     add_mac_vendor_to_devices(devices, mac_vendors)
     return devices
@@ -88,7 +93,7 @@ def create_host_main_table(host_devices:dict[str,dict[str,str]], host_name:str='
     Creates the dictionary that has three keys:
     1. name: hostname of the device from which all information was extracted.
     2. headers: the headers of this table which contains the following:
-      MAC OUT 
+      MAC OUI 
       MAC ADDRESS
       IP Address
       MAC Vendor
@@ -130,7 +135,7 @@ def create_host_vendor_catalogue_table(host_devices:dict[str, dict[str,str]]) ->
     vendor_catalogue_table['style'] = 'Table Style Medium 6'
     return vendor_catalogue_table
 
-def combine_vendor_catalogue_data(vendor_catalogue_tables) -> dict:
+def combine_vendor_catalogue_tables(vendor_catalogue_tables) -> dict:
     '''
     Creates a table that combines all vendor:count information across multiple hosts.
     The final table contains all vendor to number of devices from the vendor across all host files computed.
@@ -145,5 +150,69 @@ def combine_vendor_catalogue_data(vendor_catalogue_tables) -> dict:
             else:
                 combined_list[vendor] = count
     combined_vc_table['data'] = [[vendor, count] for vendor,count in combined_list.items()]
-    combined_vc_table['style'] = 'Table Sytle Medium 6'
+    combined_vc_table['style'] = 'Table Style Medium 6'
+    combined_vc_table['headers'] = ['Vendor', 'Count']
     return combined_vc_table
+
+def create_host_main_mac_tables(host):
+    main_mac_table = {'name': host['hostname']}
+    headers = ['MAC OUI', 'MAC Address', 'IP Address', 'MAC Vendor', 'Port', 'VLAN', 'Notes', 'Auth Type', 'CP Role', 'Role', 'Enforcement Profile']
+    devices_list = []
+    devices = host['devices']
+    for mac in devices:
+        ip_address = ''
+        if 'ip' in devices[mac]:
+            ip_address = devices[mac]['ip']
+        devices_list.append([devices[mac]['mac_oui'], mac, ip_address, devices[mac]['mac_vendor'], devices[mac]['physical_port'], devices[mac]['vlan'], '', '', '', '', ''])
+    main_mac_table['headers'] = headers
+    main_mac_table['data'] = devices_list
+    return main_mac_table
+
+def create_host_vlan_table_from_sh_mac_address_info(host):
+    vlan_table = {'name': 'VLANs', 'headers':['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'], 'data':[], 'style':'Table Style Medium 7'}
+    devices = host['devices']
+    vlans = set()
+    for mac in devices:
+        vlan = devices[mac]['vlan']
+        if not vlan in vlans:
+            vlans.add(vlan)
+            vlan_name = 'VLAN'+vlan
+            vlan_hex = str(hex(int(vlan)))
+            vlan_decimal = ''
+            vlan_table['data'].append([vlan, vlan_name, vlan_hex, vlan_decimal])
+    return vlan_table
+
+def create_host_vlan_table(host):
+    vlan_table = {'name' : 'VLANs', 'headers': host['sh_vlan']['headers'], 'data': host['sh_vlan']['results'], 'style':'Table Style Medium 7'}
+    return vlan_table
+
+def create_host_vendor_catalogue_table(host):
+    vendor_catalogue_table = {'name':'Number of devices by Vendor.'}
+    vendor_catalogue = catalogue_devices_by_vendor(host['devices'])
+    vc_list = []
+    for vendor in vendor_catalogue:
+        vc_list.append([vendor, vendor_catalogue[vendor]])
+    vc_headers = ['Vendor', 'Count']
+    vendor_catalogue_table['headers'] = vc_headers
+    vendor_catalogue_table['data'] = vc_list
+    vendor_catalogue_table['style'] = 'Table Style Medium 6'
+    return vendor_catalogue_table
+
+def combine_vlan_tables(vlan_tables):
+    '''
+    Combines all VLAN table information into one VLAN table.
+    '''
+    combined_vlan_table = {'name':'VLANs', 'headers':['VLAN', 'VLAN_NAME'], 'data':[], 'style':'Table Style Medium 7'}
+    vlans = set()
+    for vlan_table in vlan_tables:
+        current_table_headers = vlan_table['headers']
+        vlan_id_index = current_table_headers.index('VLAN')
+        vlan_name_index = current_table_headers.index('VLAN_NAME')
+        vlan_data = vlan_table['data']
+        for row in vlan_data:
+            current_vlan = row[vlan_id_index]
+            current_vlan_name = row[vlan_name_index]
+            if not current_vlan in vlans:
+                vlans.add(current_vlan)
+                combined_vlan_table['data'].append([current_vlan, current_vlan_name])
+    return combined_vlan_table
