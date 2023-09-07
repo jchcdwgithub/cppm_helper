@@ -15,7 +15,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest
-          source ./Scripts/activate
+          pip install paramiko
+          pip install openpyxl
+          pip install pandas
+          pip install pyyaml
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run Tests
         run: |
