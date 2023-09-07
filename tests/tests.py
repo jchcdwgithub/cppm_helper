@@ -145,15 +145,15 @@ def test_remove_file_extension_from_name_removes_extension():
 
 def test_combine_vlan_tables_only_adds_unique_vlans_to_combined_table():
     test_data = [
-        {'headers': ['VLAN', 'VLAN_NAME'], 'data':[['100', 'vlan100']]},
-        {'headers': ['VLAN_NAME', 'VLAN'], 'data':[['vlan120', '120']]}
+        {'headers': ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'], 'data':[['100', 'vlan100', '0x64', '']]},
+        {'headers': ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'], 'data':[['120', 'vlan120', '0x78', '']]}
     ]
     expected = {
         'name': 'VLANs',
-        'headers' : ['VLAN', 'VLAN_NAME'],
+        'headers' : ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'],
         'data' : [
-            ['100', 'vlan100'],
-            ['120', 'vlan120']
+            ['100', 'vlan100', '0x64', ''],
+            ['120', 'vlan120', '0x78', '']
         ]
     }
     generated = data_util.combine_vlan_tables(test_data)
@@ -163,8 +163,14 @@ def test_combine_vlan_tables_only_adds_unique_vlans_to_combined_table():
         assert(row_e[0] == row_g[0])
         assert(row_e[1] == row_g[1])
     assert(expected['name'] == generated['name'])
-    assert(expected['headers'][0] == generated['headers'][0])
-    assert(expected['headers'][1] == generated['headers'][1])
+    e_headers = expected['headers']
+    g_headers = generated['headers']
+    for e_header,g_header in zip(e_headers, g_headers):
+        assert(e_header == g_header)
+    e_data = expected['data']
+    g_data = generated['data']
+    for e_data,g_data in zip(e_data, g_data):
+        assert(e_data == g_data)
 
 def test_create_vlan_table_from_show_mac_address_info_creates_a_vlan_table_with_default_names():
     test_data = {
