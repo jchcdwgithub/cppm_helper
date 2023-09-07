@@ -1,5 +1,5 @@
 Value VLAN (\d+)
-Value VLAN_NAME ([a-zA-Z0-9 _-]+)
+Value VLAN_NAME ([^|]+)
 
 Start
  ^ *${VLAN} +${VLAN_NAME}|.* -> Record

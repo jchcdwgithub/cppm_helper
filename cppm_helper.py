@@ -155,6 +155,11 @@ def combine_vendor_catalogue_tables(vendor_catalogue_tables) -> dict:
     return combined_vc_table
 
 def create_host_main_mac_tables(host):
+    '''
+    Creates the main MAC table for the host that is passed to the function.
+    The created table has the following headers: 
+    MAC OUT, MAC Address, IP Address, MAC Vendor, Port, VLAN, Notes, Auth Type, CP Role, Role and Enforcement Profile
+    '''
     main_mac_table = {'name': host['hostname']}
     headers = ['MAC OUI', 'MAC Address', 'IP Address', 'MAC Vendor', 'Port', 'VLAN', 'Notes', 'Auth Type', 'CP Role', 'Role', 'Enforcement Profile']
     devices_list = []
@@ -169,6 +174,13 @@ def create_host_main_mac_tables(host):
     return main_mac_table
 
 def create_host_vlan_table_from_sh_mac_address_info(host):
+    '''
+    If the show vlan command was not part of the configuration output, VLAN information will be extracted from the
+    show mac-address table. The only information missing would be the VLAN names, which are populated to be
+    VLAN{VLAN_ID}. For example vlan 20 would have the name VLAN20.
+    The returned table has the following headers:
+    VLAN, VLAN_NAME, HEX and DECIMAL
+    '''
     vlan_table = {'name': 'VLANs', 'headers':['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'], 'data':[], 'style':'Table Style Medium 7'}
     devices = host['devices']
     vlans = set()
@@ -183,10 +195,33 @@ def create_host_vlan_table_from_sh_mac_address_info(host):
     return vlan_table
 
 def create_host_vlan_table(host):
-    vlan_table = {'name' : 'VLANs', 'headers': host['sh_vlan']['headers'], 'data': host['sh_vlan']['results'], 'style':'Table Style Medium 7'}
+    '''
+    Returns a table with VLAN information for the host that is passed to the function. The VLAN ID and name removed from the results section
+    of the sh_vlan key. The hex and decimal values are then added in place of all other VLAN information.
+    The returned table has the following headers:
+    VLAN, VLAN_NAME, HEX and DECIMAL
+    '''
+    vlan_table_headers = ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL']
+    sh_vlan_headers = host['sh_vlan']['headers']
+    sh_vlan_data = host['sh_vlan']['results']
+    vlan_index = sh_vlan_headers.index('VLAN')
+    vlan_name_index = sh_vlan_headers.index('VLAN_NAME')
+    vlan_table_data = []
+    for row in sh_vlan_data:
+        vlan = row[vlan_index]
+        vlan_name = row[vlan_name_index]
+        vlan_hex = str(hex(int(vlan)))
+        vlan_decimal = ''
+        vlan_table_data.append([vlan, vlan_name, vlan_hex, vlan_decimal])
+    vlan_table = {'name':'VLANs', 'headers':vlan_table_headers, 'data':vlan_table_data, 'style':'Table Style Medium 7'}
     return vlan_table
 
 def create_host_vendor_catalogue_table(host):
+    '''
+    Returns a table cataloging the vendors and number of devices that belongs to that vendor.
+    The returned table has the following headers:
+    Vendor and Count
+    '''
     vendor_catalogue_table = {'name':'Number of devices by Vendor.'}
     vendor_catalogue = catalogue_devices_by_vendor(host['devices'])
     vc_list = []
@@ -202,17 +237,13 @@ def combine_vlan_tables(vlan_tables):
     '''
     Combines all VLAN table information into one VLAN table.
     '''
-    combined_vlan_table = {'name':'VLANs', 'headers':['VLAN', 'VLAN_NAME'], 'data':[], 'style':'Table Style Medium 7'}
+    combined_vlan_table = {'name':'VLANs', 'headers':['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'], 'data':[], 'style':'Table Style Medium 7'}
     vlans = set()
     for vlan_table in vlan_tables:
-        current_table_headers = vlan_table['headers']
-        vlan_id_index = current_table_headers.index('VLAN')
-        vlan_name_index = current_table_headers.index('VLAN_NAME')
         vlan_data = vlan_table['data']
         for row in vlan_data:
-            current_vlan = row[vlan_id_index]
-            current_vlan_name = row[vlan_name_index]
+            current_vlan = row[0]
             if not current_vlan in vlans:
                 vlans.add(current_vlan)
-                combined_vlan_table['data'].append([current_vlan, current_vlan_name])
+                combined_vlan_table['data'].append(row)
     return combined_vlan_table
