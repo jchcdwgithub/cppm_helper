@@ -3,28 +3,28 @@ import os
 directory = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(directory)
 sys.path.append(parent)
-import cppm_helper
+import data_util
 import excel_util
 import file_util
 
 def test_extract_mac_oui_extracts_half_of_colon_separated_mac():
     mac = '00:1b:bc:16:00:c3'
     expected = '001bbc'
-    generated = cppm_helper.extract_oui(mac)
+    generated = data_util.extract_oui(mac)
 
     assert(generated == expected)
 
 def test_get_vlan_from_port_information_extracts_vlan_id_from_information():
     port_info = 'vlan192'
     expected = '192'
-    generated = cppm_helper.get_vlan_from_port_info(port_info)
+    generated = data_util.get_vlan_from_port_info(port_info)
     assert(generated == expected)
 
 
 def test_get_vlan_from_port_info_returns_na_if_no_vlan_information():
     port_info = '1/1/24'
     expected = 'na'
-    generated = cppm_helper.get_vlan_from_port_info(port_info)
+    generated = data_util.get_vlan_from_port_info(port_info)
     assert(generated == expected)
 
 def test_extract_device_information_from_sh_mac_address_creates_a_dictionary_with_device_information():
@@ -37,7 +37,7 @@ def test_extract_device_information_from_sh_mac_address_creates_a_dictionary_wit
         }
     }
     mac = '64:e8:81:3f:06:40'
-    generated = cppm_helper.extract_device_info_from_sh_mac_address(sh_line, sh_line_headers)
+    generated = data_util.extract_device_info_from_sh_mac_address(sh_line, sh_line_headers)
     assert(generated[mac]['vlan'] == expected[mac]['vlan'])
     assert(generated[mac]['physical_port'] == expected[mac]['physical_port'])
 
@@ -48,7 +48,7 @@ def test_add_ip_information_to_devices_adds_ip_information_if_it_exists():
     devices = {mac : { 'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25'} }
     expected = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20'}}
     
-    cppm_helper.add_ip_information_to_devices(sh_line, sh_line_headers, devices)
+    data_util.add_ip_information_to_devices(sh_line, sh_line_headers, devices)
     assert(devices[mac]['ip'] == expected[mac]['ip'])
     assert(devices[mac]['vlan'] == expected[mac]['vlan'])
     assert(devices[mac]['physical_port'] == expected[mac]['physical_port'])
@@ -57,7 +57,7 @@ def test_add_mac_oui_to_devices_adds_mac_oui_attribute_with_no_separators_to_dev
     mac = '54:04:a6:0b:f8:51'
     devices = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20'}}
     expected = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20', 'mac_oui': '5404a6'}}
-    cppm_helper.add_mac_oui_to_devices(devices)
+    data_util.add_mac_oui_to_devices(devices)
     assert('5404a6' == expected[mac]['mac_oui'])
 
 def test_add_mac_vendor_to_devices_adds_correct_mac_vendor_to_devices():
@@ -66,7 +66,7 @@ def test_add_mac_vendor_to_devices_adds_correct_mac_vendor_to_devices():
     devices = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20', 'mac_oui': '5404a6'}}
     expected = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20', 'mac_oui': '5404a6', 'mac_vendor': mac_vendor}}
     mac_vendors = {'5404A6':'ASUSTek COMPUTER INC.'}
-    cppm_helper.add_mac_vendor_to_devices(devices, mac_vendors)
+    data_util.add_mac_vendor_to_devices(devices, mac_vendors)
     assert('ASUSTek COMPUTER INC.' == expected[mac]['mac_vendor'])
     
 def test_add_mac_vendor_to_devices_adds_na_to_devices_if_mac_oui_not_in_vendors_list():
@@ -74,7 +74,7 @@ def test_add_mac_vendor_to_devices_adds_na_to_devices_if_mac_oui_not_in_vendors_
     devices = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20', 'mac_oui': '5404a6'}}
     expected = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20', 'mac_oui': '5404a6', 'mac_vendor': 'na'}}
     mac_vendors = {'5404A6':'ASUSTek COMPUTER INC.'}
-    cppm_helper.add_mac_vendor_to_devices(devices, mac_vendors)
+    data_util.add_mac_vendor_to_devices(devices, mac_vendors)
     assert('na' == expected[mac]['mac_vendor'])
 
 def test_catalogue_devices_by_vendor_categorizes_device_numbers_correctly():
@@ -102,7 +102,7 @@ def test_catalogue_devices_by_vendor_categorizes_device_numbers_correctly():
                 'CONTEMPORARY CONTROL' : 7,
                 'TAS TELEFONBAU A. SCHWABE GMBH CO. KG': 5,
                 '3COM': 7}
-    generated = cppm_helper.catalogue_devices_by_vendor(devices)
+    generated = data_util.catalogue_devices_by_vendor(devices)
     for vendor in expected:
         assert expected[vendor] == generated[vendor]
 
@@ -131,7 +131,7 @@ def test_combine_vendor_catalogue_data_adds_same_vendor_items_together():
         'data' : [['vendor1',22], ['vendor2',5],['vendor3',5],['vendor4',10]],
         'style' : 'Table Sytle Medium 6'
         }
-    generated = cppm_helper.combine_vendor_catalogue_tables(test_data)
+    generated = data_util.combine_vendor_catalogue_tables(test_data)
     expected_data = expected['data']
     generated_data = generated['data']
     for expected_pair, generated_pair in zip(expected_data,generated_data):
@@ -156,7 +156,7 @@ def test_combine_vlan_tables_only_adds_unique_vlans_to_combined_table():
             ['120', 'vlan120']
         ]
     }
-    generated = cppm_helper.combine_vlan_tables(test_data)
+    generated = data_util.combine_vlan_tables(test_data)
     expected_vlans = expected['data']
     generated_vlans = generated['data']
     for row_e,row_g in zip(expected_vlans, generated_vlans):
@@ -192,7 +192,7 @@ def test_create_vlan_table_from_show_mac_address_info_creates_a_vlan_table_with_
         ],
         'headers' : ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL']
     }
-    generated = cppm_helper.create_host_vlan_table_from_sh_mac_address_info(test_data)
+    generated = data_util.create_host_vlan_table_from_sh_mac_address_info(test_data)
     assert expected['name'] == generated['name']
     assert expected['style'] == generated['style']
     assert expected['headers'] == generated['headers']
@@ -232,7 +232,7 @@ def test_create_vlan_table_from_show_mac_address_info_creates_a_vlan_table_witho
         ],
         'headers' : ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL']
     }
-    generated = cppm_helper.create_host_vlan_table_from_sh_mac_address_info(test_data)
+    generated = data_util.create_host_vlan_table_from_sh_mac_address_info(test_data)
     assert expected['name'] == generated['name']
     assert expected['style'] == generated['style']
     assert expected['headers'] == generated['headers']
