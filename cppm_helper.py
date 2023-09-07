@@ -1,249 +1,98 @@
-import textfsm
-import pandas as pd
+import data_util
+import os
+import connection_util
+import excel_util
+import file_util
 
-def extract_oui(mac:str) -> str:
-    dividers = [':','-','.']
-    mac_without_divider = ''
-    for symbol in dividers:
-        if symbol in mac:
-            mac_without_divider = mac.replace(symbol,'')
-    if mac_without_divider == '':
-        mac_without_divider = mac
-    return mac_without_divider[:6]
+def main():
+    cwd = os.getcwd()
+    hosts_file = os.path.join(cwd, 'hosts.yml')
+    if os.path.exists(hosts_file):
+        connection_util.gather_information_from_hosts()
 
-def get_vlan_from_port_info(port_info:str) -> str:
-    if 'vlan' in port_info:
-        vlan_id = port_info[4:]
-    else:
-        vlan_id = 'na'
-    return vlan_id
+    config_files_directory = './test_files'
 
-def extract_device_info_from_sh_mac_address(sh_mac_output:list[list[str]], sh_mac_headers:list[str]) -> dict[dict[str, str]]:
-    devices = {} 
-    mac_index = sh_mac_headers.index('MAC')
-    vlan_index = sh_mac_headers.index('VLAN')
-    port_index = sh_mac_headers.index('PORT')
-    for line in sh_mac_output:
-        current_device = {}
-        current_device_mac = line[mac_index]
-        current_device['vlan'] = line[vlan_index]
-        current_device['physical_port'] = line[port_index]
-        devices[current_device_mac] = current_device
-    return devices
-
-def add_ip_information_to_devices(arp_info:list[list[str]], arp_info_headers:list[str], devices:dict[dict[str, str]]) -> None:
-    mac_index = arp_info_headers.index('MAC')
-    ip_index = arp_info_headers.index('IP')
-    for arp_entry in arp_info:
-        current_mac = arp_entry[mac_index]
-        current_ip = arp_entry[ip_index]
-        if current_mac in devices:
-            devices[current_mac]['ip'] = current_ip
-
-def add_mac_oui_to_devices(devices:dict[dict[str,str]]) -> None:
-    for mac in devices:
-        mac_oui = extract_oui(mac)
-        devices[mac]['mac_oui'] = mac_oui
-
-def add_mac_vendor_to_devices(devices:dict[dict[str,str]], mac_vendors:dict[str, str]) -> None:
-    for mac in devices:
-        mac_oui = devices[mac]['mac_oui']
-        if mac_oui in mac_vendors:
-            devices[mac]['mac_vendor'] = mac_vendors[mac_oui]
+    directory_files = os.listdir(config_files_directory)
+    extracted_tables = {}
+    for os_name in directory_files:
+        template_files = {
+            'sh_mac_address':f'./templates/{os_name}/sh_mac_address.template',
+            'sh_arp':f'./templates/{os_name}/sh_arp.template',
+            'sh_vlan':f'./templates/{os_name}/sh_vlan.template'
+            }
+        os_directory = os.path.join(config_files_directory,os_name)
+        os_config_files = os.listdir(os_directory)
+        if len(os_config_files) != 0:
+            extracted_tables[os_name] = []
+            for os_config_file in os_config_files:
+                config_file = os.path.join(os_directory,os_config_file)
+                config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
+                extracted_tables[os_name].append(config_tables) 
         else:
-            devices[mac]['mac_vendor'] = 'na'
+            print(f'found a folder for {os_name} platform but the folder is empty. Skipping processing...')
+        
+    mac_vendors = data_util.create_mac_vendors_dict_from_mac_oui_csv()
 
-def catalogue_devices_by_vendor(devices:dict[dict[str,str]]) -> dict[str, int]:
-    catalogue = {}
-    for mac in devices:
-        vendor_name = devices[mac]['mac_vendor']
-        if vendor_name not in catalogue:
-            catalogue[vendor_name] = 1
-        else:
-            catalogue[vendor_name] += 1
-    return catalogue
+    main_mac_tables = []
+    vlan_tables = []
+    vendor_catalogue_tables = []
+    worksheet_names = []
+    table_sets = []
 
-def create_mac_vendors_dict_from_mac_oui_csv() -> dict[str, str]:
-    '''
-    Uses the MAC_OUI.csv file found in the static folder to create a dictionary of MAC OUI to vendor information.
-    '''
-    with open('./static/MAC_OUI.csv', 'r', encoding='utf-8') as mac_f:
-        mac_vendors = {}
-        lines = mac_f.readlines()
-        for line in lines[1:]:
-            oui = line[:6].lower()
-            company = line[7:].replace('\n','')
-            mac_vendors[oui] = company
-    return mac_vendors 
+    print('Creating tables from parsed information.')
+    for os_name,hosts in extracted_tables.items():
+        for host in hosts:
 
-def add_information_to_devices_from_tables(device_tables:list[list[str]], mac_vendors:dict[str,str]) -> dict[str,dict[str,str]]:
-    '''
-    Creates a dictionary of MAC to device details. The details are taken from the extracted tables passed in the table_results parameter.
-    This table should have three tables: the sh_mac_address, sh_vlan and sh_arp tables.
-    '''
-    devices = extract_device_info_from_sh_mac_address(device_tables['sh_mac_address']['results'], device_tables['sh_mac_address']['headers'])
-    if 'sh_arp' in device_tables:
-        add_ip_information_to_devices(device_tables['sh_arp']['results'], device_tables['sh_arp']['headers'],devices)
-    add_mac_oui_to_devices(devices)
-    add_mac_vendor_to_devices(devices, mac_vendors)
-    return devices
+            host_first_column_tables = []
+            host_second_column_tables = []
 
-def create_host_main_table(host_devices:dict[str,dict[str,str]], host_name:str='HOST') -> dict:
-    '''
-    Creates the dictionary that has three keys:
-    1. name: hostname of the device from which all information was extracted.
-    2. headers: the headers of this table which contains the following:
-      MAC OUI 
-      MAC ADDRESS
-      IP Address
-      MAC Vendor
-      Port
-      VLAN
-      Notes
-      Auth Type
-      CP Role
-      Role
-      Enforcement Profile
-    3. data: the rows of the table.
-    The host_name is an optional parameter for the name of the host
-    '''
-    main_mac_table = {'name': host_name}
-    headers = ['MAC OUI', 'MAC Address', 'IP Address', 'MAC Vendor', 'Port', 'VLAN', 'Notes', 'Auth Type', 'CP Role', 'Role', 'Enforcement Profile']
-    devices_list = []
-    for mac in host_devices:
-        ip_address = ''
-        if 'ip' in host_devices[mac]:
-            ip_address = host_devices[mac]['ip']
-        devices_list.append([host_devices[mac]['mac_oui'], mac, ip_address, host_devices[mac]['mac_vendor'], host_devices[mac]['physical_port'], host_devices[mac]['vlan'], '', '', '', '', ''])
-    main_mac_table['headers'] = headers
-    main_mac_table['data'] = devices_list
-    return main_mac_table
+            hostname = host['hostname']
+            print(f'Creating main MAC table for {hostname}')
+            host_devices = data_util.add_information_to_devices_from_tables(host,mac_vendors)
+            host['devices'] = host_devices
 
+            host_main_mac_table = data_util.create_host_main_mac_tables(host)
+            host_second_column_tables.append(host_main_mac_table)
+            main_mac_tables.append(host_main_mac_table)
 
-def create_host_vendor_catalogue_table(host_devices:dict[str, dict[str,str]]) -> dict:
-    '''
-    Creates a table of Vendor Name to number of devices in the network that comes from that vendor.
-    '''
-    vendor_catalogue_table = {'name':'Number of devices by Vendor.'}
-    vendor_catalogue = catalogue_devices_by_vendor(host_devices)
-    vc_list = []
-    for vendor in vendor_catalogue:
-        vc_list.append([vendor, vendor_catalogue[vendor]])
-    vc_headers = ['Vendor', 'Count']
-    vendor_catalogue_table['headers'] = vc_headers
-    vendor_catalogue_table['data'] = vc_list
-    vendor_catalogue_table['style'] = 'Table Style Medium 6'
-    return vendor_catalogue_table
-
-def combine_vendor_catalogue_tables(vendor_catalogue_tables) -> dict:
-    '''
-    Creates a table that combines all vendor:count information across multiple hosts.
-    The final table contains all vendor to number of devices from the vendor across all host files computed.
-    '''
-    combined_vc_table = {'name' : 'Number of devices by Vendor'}
-    combined_list = {}
-    for vc_table in vendor_catalogue_tables:
-        current_vc_data = vc_table['data']
-        for vendor,count in current_vc_data:
-            if vendor in combined_list:
-                combined_list[vendor] += count
+            if 'sh_vlan' in host:
+                print(f'Creating VLAN table for {hostname}')
+                host_vlan_table = data_util.create_host_vlan_table(host)
             else:
-                combined_list[vendor] = count
-    combined_vc_table['data'] = [[vendor, count] for vendor,count in combined_list.items()]
-    combined_vc_table['style'] = 'Table Style Medium 6'
-    combined_vc_table['headers'] = ['Vendor', 'Count']
-    return combined_vc_table
+                print(f'Creating VLAN table from sh_mac_address command for {hostname}')
+                host_vlan_table = data_util.create_host_vlan_table_from_sh_mac_address_info(host)
+            vlan_tables.append(host_vlan_table)
+            host_first_column_tables.append(host_vlan_table)
 
-def create_host_main_mac_tables(host):
-    '''
-    Creates the main MAC table for the host that is passed to the function.
-    The created table has the following headers: 
-    MAC OUT, MAC Address, IP Address, MAC Vendor, Port, VLAN, Notes, Auth Type, CP Role, Role and Enforcement Profile
-    '''
-    main_mac_table = {'name': host['hostname']}
-    headers = ['MAC OUI', 'MAC Address', 'IP Address', 'MAC Vendor', 'Port', 'VLAN', 'Notes', 'Auth Type', 'CP Role', 'Role', 'Enforcement Profile']
-    devices_list = []
-    devices = host['devices']
-    for mac in devices:
-        ip_address = ''
-        if 'ip' in devices[mac]:
-            ip_address = devices[mac]['ip']
-        devices_list.append([devices[mac]['mac_oui'], mac, ip_address, devices[mac]['mac_vendor'], devices[mac]['physical_port'], devices[mac]['vlan'], '', '', '', '', ''])
-    main_mac_table['headers'] = headers
-    main_mac_table['data'] = devices_list
-    return main_mac_table
+            print(f'Cataloging devices by vendor for {hostname}')
+            host_vendor_catalogue_table = data_util.create_host_vendor_catalogue_table(host)
+            vendor_catalogue_tables.append(host_vendor_catalogue_table)
+            host_first_column_tables.append(host_vendor_catalogue_table)
 
-def create_host_vlan_table_from_sh_mac_address_info(host):
-    '''
-    If the show vlan command was not part of the configuration output, VLAN information will be extracted from the
-    show mac-address table. The only information missing would be the VLAN names, which are populated to be
-    VLAN{VLAN_ID}. For example vlan 20 would have the name VLAN20.
-    The returned table has the following headers:
-    VLAN, VLAN_NAME, HEX and DECIMAL
-    '''
-    vlan_table = {'name': 'VLANs', 'headers':['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'], 'data':[], 'style':'Table Style Medium 7'}
-    devices = host['devices']
-    vlans = set()
-    for mac in devices:
-        vlan = devices[mac]['vlan']
-        if not vlan in vlans:
-            vlans.add(vlan)
-            vlan_name = 'VLAN'+vlan
-            vlan_hex = str(hex(int(vlan)))
-            vlan_decimal = ''
-            vlan_table['data'].append([vlan, vlan_name, vlan_hex, vlan_decimal])
-    return vlan_table
+            worksheet_names.append(host['hostname'])
 
-def create_host_vlan_table(host):
-    '''
-    Returns a table with VLAN information for the host that is passed to the function. The VLAN ID and name removed from the results section
-    of the sh_vlan key. The hex and decimal values are then added in place of all other VLAN information.
-    The returned table has the following headers:
-    VLAN, VLAN_NAME, HEX and DECIMAL
-    '''
-    vlan_table_headers = ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL']
-    sh_vlan_headers = host['sh_vlan']['headers']
-    sh_vlan_data = host['sh_vlan']['results']
-    vlan_index = sh_vlan_headers.index('VLAN')
-    vlan_name_index = sh_vlan_headers.index('VLAN_NAME')
-    vlan_table_data = []
-    for row in sh_vlan_data:
-        vlan = row[vlan_index]
-        vlan_name = row[vlan_name_index]
-        vlan_hex = str(hex(int(vlan)))
-        vlan_decimal = ''
-        vlan_table_data.append([vlan, vlan_name, vlan_hex, vlan_decimal])
-    vlan_table = {'name':'VLANs', 'headers':vlan_table_headers, 'data':vlan_table_data, 'style':'Table Style Medium 7'}
-    return vlan_table
+            print(f'Saving tables to worksheet for {hostname}')
+            table_sets.append([host_first_column_tables, host_second_column_tables])
 
-def create_host_vendor_catalogue_table(host):
-    '''
-    Returns a table cataloging the vendors and number of devices that belongs to that vendor.
-    The returned table has the following headers:
-    Vendor and Count
-    '''
-    vendor_catalogue_table = {'name':'Number of devices by Vendor.'}
-    vendor_catalogue = catalogue_devices_by_vendor(host['devices'])
-    vc_list = []
-    for vendor in vendor_catalogue:
-        vc_list.append([vendor, vendor_catalogue[vendor]])
-    vc_headers = ['Vendor', 'Count']
-    vendor_catalogue_table['headers'] = vc_headers
-    vendor_catalogue_table['data'] = vc_list
-    vendor_catalogue_table['style'] = 'Table Style Medium 6'
-    return vendor_catalogue_table
+    first_column_tables = []
+    print('Aggregating VLAN information across all hosts.')
+    combined_vlan_table = data_util.combine_vlan_tables(vlan_tables)
+    first_column_tables.append(combined_vlan_table)
 
-def combine_vlan_tables(vlan_tables):
-    '''
-    Combines all VLAN table information into one VLAN table.
-    '''
-    combined_vlan_table = {'name':'VLANs', 'headers':['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL'], 'data':[], 'style':'Table Style Medium 7'}
-    vlans = set()
-    for vlan_table in vlan_tables:
-        vlan_data = vlan_table['data']
-        for row in vlan_data:
-            current_vlan = row[0]
-            if not current_vlan in vlans:
-                vlans.add(current_vlan)
-                combined_vlan_table['data'].append(row)
-    return combined_vlan_table
+    print('Aggregating vendor to device catalog across all hosts.')
+    combined_vendor_catalogue_tables = data_util.combine_vendor_catalogue_tables(vendor_catalogue_tables)
+    first_column_tables.append(combined_vendor_catalogue_tables)
+
+    worksheet_names.append('Overview')
+
+    second_column_tables = main_mac_tables
+
+    table_sets.append([first_column_tables,second_column_tables])
+
+    print('Writing all information to excel workbook.')
+    excel_util.write_tables_to_excel_worksheets('output.xlsx', worksheet_names, table_sets)
+    print('Done.')
+    print(f'The excel file can be found at the root directory named output.xlsx')
+
+if __name__ == "__main__":
+    main()
