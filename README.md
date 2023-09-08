@@ -2,9 +2,18 @@
 This script is a utility script that parses information from one or more switches, processes that data and outputs the data into tables in an excel workbook.
 
 ## Where to place the configuration output data
-The script will look for configuration information in the show_files directory. Create a directory for each switch vendor OS that you have data for.
-Example: All AOS-CX data should go into a directory called aos-cx. All AOS-S data should go into a directory called aos-s, etc.
+The script will look for configuration information in a directory called show_files (exact spelling). Create the show_files directory in the same folder where the cppm_helper.py file is then create a directory for each switch vendor OS that you have data for.
 Currently only AOS-CX and AOS-S outputs are supported. There should be one file per host and ideally, the file will be named what the hostname is.
+Ex.
+```
+> show_files
+    > aos-cx
+       host1.txt
+       host2.txt
+    > aos-s
+       host3.txt
+       host4.txt
+```
 
 ## Automatic information gathering
 If there is connectivity to the host(s) from the machine where this script will be executing then a hosts.yml file can be created in the main directory.

@@ -170,3 +170,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+*.cfg
+
+show_files/
