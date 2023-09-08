@@ -10,7 +10,7 @@ def main():
     if os.path.exists(hosts_file):
         connection_util.gather_information_from_hosts()
 
-    config_files_directory = './test_files'
+    config_files_directory = './show_files'
 
     directory_files = os.listdir(config_files_directory)
     extracted_tables = {}
