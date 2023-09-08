@@ -133,5 +133,3 @@ def write_tables_to_excel_worksheets(excel_filename: str, worksheet_names:list[s
 
                 next_table_row = 0
                 next_table_col += max_columns + 2
-        
-        writer.save()
