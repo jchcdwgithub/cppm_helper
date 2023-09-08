@@ -13,7 +13,7 @@ only AOS-CX hosts are supported. With this information, the script will SSH into
 show mac-address and show arp. These files will be saved in the show_files directory. Each filename will be the hostname of the host it was derived from.
 
 ### hosts.yml example
-
+``
 ---
 - hosts:
   aos-cx:
@@ -25,7 +25,7 @@ show mac-address and show arp. These files will be saved in the show_files direc
       credentials:
         username : admin
         password : aruba12$
-
+``
 ### Updating the MAC OUI information
 The MAC OUI to vendor information is stored in a CSV file stored in the static directory. If this information needs to be updated, upload a new CSV
 file of the same name and format to the static folder. Call it MAC_OUI.csv.
@@ -33,22 +33,16 @@ file of the same name and format to the static folder. Call it MAC_OUI.csv.
 ## Downloading the script
 Either pull the script from github or download it directly through the code button on github.
 
+## First time python environment setup
+
+All the dependencies for this script are found in the requirements.txt file. The command to install these dependencies is:
+
+`python -m pip install -r requirements.txt`
+
+Note that your environment might use python3 and pip3 instead.
+
 ## Running the script
 
-1. Activate the virtual environment.
+Once all the dependencies are installed, run the script using python:
 
-On windows powershell:
-
-Scripts\activate.ps1
-
-On windows cmd:
-
-Scripts\activate.bat
-
-On linux/mac:
-
-source bin/activate
-
-2. Run the main script with python:
-
-python cppm_helper.py
+`python cppm_helper.py`
