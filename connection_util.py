@@ -44,7 +44,7 @@ def gather_information_from_hosts():
                             for line in output:
                                 file_lines.append(line+'\n')
                         with open(f'./test_files/{os_name}/{hostname}.txt', 'w') as f:
-                            print(f'Writing output for {host["host"]} to show_files/{os_name}/{host["host"]}.txt')
+                            print(f'Writing output for {hostname} to show_files/{os_name}/{hostname}.txt')
                             f.writelines(file_lines)
                         client.close()
                     except:
