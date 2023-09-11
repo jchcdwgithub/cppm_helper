@@ -1,3 +1,5 @@
+import os
+
 def extract_oui(mac:str) -> str:
     dividers = [':','-','.']
     mac_without_divider = ''
@@ -64,7 +66,10 @@ def create_mac_vendors_dict_from_mac_oui_csv() -> dict[str, str]:
     '''
     Uses the MAC_OUI.csv file found in the static folder to create a dictionary of MAC OUI to vendor information.
     '''
-    with open('./static/MAC_OUI.csv', 'r', encoding='utf-8') as mac_f:
+    mac_oui_csv = './static/MAC_OUI.csv'
+    if not os.path.exists(mac_oui_csv):
+        raise FileNotFoundError('The MAC_OUI.csv file is not found in the static folder. This CSV file is required for this script to work.')
+    with open(mac_oui_csv, 'r', encoding='utf-8') as mac_f:
         mac_vendors = {}
         lines = mac_f.readlines()
         for line in lines[1:]:
