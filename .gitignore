@@ -10,6 +10,7 @@ test_files
 __pycache__
 .pytest_cache
 *.pyc
+pyvenv.cfg
 
 #local runners
 local_runner.py
