@@ -31,9 +31,17 @@ def main():
                 if not 'sh_mac_address' in config_tables:
                     print(f'No information could be extracted for the show mac-address command in the file {os_config_file}. This is required information. Skipping this file.')
                 else:
-                    extracted_tables[os_name].append(config_tables) 
+                    extracted_tables[os_name].append(config_tables)
         else:
             print(f'found a folder for {os_name} platform but the folder is empty. Skipping processing...')
+
+    for os_name in directory_files:
+        os_has_only_empty_tables = data_util.os_has_no_data_in_tables(extracted_tables, os_name)
+        if os_has_only_empty_tables:
+            extracted_tables.pop(os_name)
+    if extracted_tables == {}:
+        print('No information extracted from any of the configuration files. Exiting.')
+        exit()
 
     mac_vendors = data_util.create_mac_vendors_dict_from_mac_oui_csv()
 
