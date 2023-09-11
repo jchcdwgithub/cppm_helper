@@ -11,7 +11,8 @@ def main():
         connection_util.gather_information_from_hosts()
 
     config_files_directory = './show_files'
-
+    if not os.path.exists(config_files_directory):
+        raise FileNotFoundError('There is no show_files directory to process. Add the configuration files under the correct os folders to the show_files folder and run the script again.')
     directory_files = os.listdir(config_files_directory)
     extracted_tables = {}
     for os_name in directory_files:
@@ -27,10 +28,13 @@ def main():
             for os_config_file in os_config_files:
                 config_file = os.path.join(os_directory,os_config_file)
                 config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
-                extracted_tables[os_name].append(config_tables) 
+                if not 'sh_mac_address' in config_tables:
+                    print(f'No information could be extracted for the show mac-address command in the file {os_config_file}. This is required information. Skipping this file.')
+                else:
+                    extracted_tables[os_name].append(config_tables) 
         else:
             print(f'found a folder for {os_name} platform but the folder is empty. Skipping processing...')
-        
+
     mac_vendors = data_util.create_mac_vendors_dict_from_mac_oui_csv()
 
     main_mac_tables = []
