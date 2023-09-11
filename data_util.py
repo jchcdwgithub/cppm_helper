@@ -17,6 +17,12 @@ def get_vlan_from_port_info(port_info:str) -> str:
         vlan_id = 'na'
     return vlan_id
 
+def os_has_no_data_in_tables(tables:dict, os_name:str) -> bool:
+    '''
+    Returns true if the key entry os_name in the tables dictionary is an empty list.
+    '''
+    return len(tables[os_name]) == 0
+
 def extract_device_info_from_sh_mac_address(sh_mac_output:list[list[str]], sh_mac_headers:list[str]) -> dict[dict[str, str]]:
     devices = {} 
     mac_index = sh_mac_headers.index('MAC')
