@@ -44,8 +44,8 @@ def main():
         if os_name in supported_os:
             if os_name in extracted_tables:
                 os_has_only_empty_tables = data_util.os_has_no_data_in_tables(extracted_tables, os_name)
-            if os_has_only_empty_tables:
-                extracted_tables.pop(os_name)
+                if os_has_only_empty_tables:
+                    extracted_tables.pop(os_name)
     if extracted_tables == {}:
         print('No information extracted from any of the configuration files. Exiting.')
         exit()
