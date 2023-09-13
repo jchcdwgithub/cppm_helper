@@ -4,7 +4,7 @@ def extract_table_from_config_file(textfsm_template:str, config_file:str) -> tup
     '''
     Extracts a table of values from the config_file using the textfsm_template provided. Returns the table headers and table rows.
     '''
-    with open(textfsm_template) as template_f, open(config_file) as config_f:
+    with open(textfsm_template) as template_f, open(config_file, errors="replace") as config_f:
         config_table = textfsm.TextFSM(template_f)
         headers = config_table.header
         table_values = config_table.ParseText(config_f.read())
