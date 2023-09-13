@@ -24,7 +24,7 @@ show mac-address and show arp. These files will be saved in the show_files direc
 ### hosts.yml example
 ```
 ---
-- hosts:
+hosts:
   aos-cx:
    - host: 10.10.0.100
      credentials:
