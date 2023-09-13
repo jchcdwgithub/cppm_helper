@@ -16,6 +16,8 @@ Ex.
        host4.txt
 ```
 
+The switch OS names need to be exact. Currently supported folder names are: aos-cx and aos-s. The script will skip any other files or folders in this directory.
+
 ## Automatic information gathering
 If there is connectivity to the host(s) from the machine where this script will be executing then a hosts.yml file can be created in the main directory.
 This is where the cppm_helper.py file resides. List the hosts and their information in the hosts.yml file, again under a specific vendor OS. Currently
