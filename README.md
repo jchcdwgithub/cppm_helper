@@ -51,6 +51,10 @@ If you have git installed you can clone this repository directly from github:
 
 You can also download the code if you visit the github page.
 
+If you already downloaded the script from github, you can issue a git pull to update the script:
+
+`git pull https://github.com/jchcdwgithub/cppm_helper`
+
 ## First time python environment setup
 
 All the dependencies for this script are found in the requirements.txt file. The command to install these dependencies is:
