@@ -10,6 +10,8 @@ def main():
     if os.path.exists(hosts_file):
         connection_util.gather_information_from_hosts()
 
+    supported_os = ['aos-cx', 'aos-s']
+
     config_files_directory = './show_files'
     if not os.path.exists(config_files_directory):
         raise FileNotFoundError('There is no show_files directory to process. Add the configuration files under the correct os folders to the show_files folder and run the script again.')
@@ -21,24 +23,28 @@ def main():
             'sh_arp':f'./templates/{os_name}/sh_arp.template',
             'sh_vlan':f'./templates/{os_name}/sh_vlan.template'
             }
-        os_directory = os.path.join(config_files_directory,os_name)
-        os_config_files = os.listdir(os_directory)
-        if len(os_config_files) != 0:
-            extracted_tables[os_name] = []
-            for os_config_file in os_config_files:
-                config_file = os.path.join(os_directory,os_config_file)
-                config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
-                if not 'sh_mac_address' in config_tables:
-                    print(f'No information could be extracted for the show mac-address command in the file {os_config_file}. This is required information. Skipping this file.')
-                else:
-                    extracted_tables[os_name].append(config_tables)
+        if not os_name in supported_os:
+            print(f'Found unsupported os in show_files or non-directory in show_files. Skipping {os_name}')
         else:
-            print(f'found a folder for {os_name} platform but the folder is empty. Skipping processing...')
+            os_directory = os.path.join(config_files_directory,os_name)
+            os_config_files = os.listdir(os_directory)
+            if len(os_config_files) != 0:
+                extracted_tables[os_name] = []
+                for os_config_file in os_config_files:
+                    config_file = os.path.join(os_directory,os_config_file)
+                    config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
+                    if not 'sh_mac_address' in config_tables:
+                        print(f'No information could be extracted for the show mac-address command in the file {os_config_file}. This is required information. Skipping this file.')
+                    else:
+                        extracted_tables[os_name].append(config_tables)
+            else:
+                print(f'found a folder for {os_name} platform but the folder is empty. Skipping processing...')
 
     for os_name in directory_files:
-        os_has_only_empty_tables = data_util.os_has_no_data_in_tables(extracted_tables, os_name)
-        if os_has_only_empty_tables:
-            extracted_tables.pop(os_name)
+        if os_name in supported_os:
+            os_has_only_empty_tables = data_util.os_has_no_data_in_tables(extracted_tables, os_name)
+            if os_has_only_empty_tables:
+                extracted_tables.pop(os_name)
     if extracted_tables == {}:
         print('No information extracted from any of the configuration files. Exiting.')
         exit()
