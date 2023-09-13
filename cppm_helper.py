@@ -12,7 +12,7 @@ def main():
 
     supported_os = ['aos-cx', 'aos-s']
 
-    config_files_directory = './show_files'
+    config_files_directory = os.path.join(cwd, 'show_files')
     if not os.path.exists(config_files_directory):
         raise FileNotFoundError('There is no show_files directory to process. Add the configuration files under the correct os folders to the show_files folder and run the script again.')
     directory_files = os.listdir(config_files_directory)
