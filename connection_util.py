@@ -1,5 +1,6 @@
 import paramiko
 import yaml
+import os
 
 def get_hostname(os_name:str, sshclient:paramiko.client.SSHClient) -> str:
     '''
@@ -21,6 +22,11 @@ def gather_information_from_hosts():
     with open('./hosts.yml', 'r') as hosts_file:
         supported_os = ['aos-cx']
         hosts = yaml.safe_load(hosts_file)['hosts']
+        cwd = os.getcwd()
+        show_files_path = os.path.join(cwd, 'show_files')
+        if not os.path.exists(show_files_path):
+            print(f'No show_files directory found. Creating {show_files_path}.')
+            os.mkdir(show_files_path)
         for os_name,hosts_values in hosts.items():
             if os_name in supported_os:
                 for host in hosts_values:
@@ -43,7 +49,12 @@ def gather_information_from_hosts():
                         for output in command_outputs:
                             for line in output:
                                 file_lines.append(line+'\n')
-                        with open(f'./show_files/{os_name}/{hostname}.txt', mode = 'w', encoding='utf-8', errors="replace") as f:
+                        os_fullpath = os.path.join(show_files_path, os_name)
+                        if not os.path.exists(os_fullpath):
+                            print(f'{os_name} directory not found in the show_files directory. Creating {os_name} directory.')
+                            os.mkdir(os_fullpath)
+                        host_output_path = os.path.join(os_fullpath, f'{hostname}.txt')
+                        with open(host_output_path, mode = 'w', encoding='utf-8', errors="replace") as f:
                             print(f'Writing output for {hostname} to show_files/{os_name}/{hostname}.txt')
                             f.writelines(file_lines)
                         client.close()
