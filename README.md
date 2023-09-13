@@ -16,6 +16,8 @@ Ex.
        host4.txt
 ```
 
+Note that you do not have to create any folders if you are doing automatic information gathering. The show_files and OS subfolders will be created for you.
+
 The switch OS names need to be exact. Currently supported folder names are: aos-cx and aos-s. The script will skip any other files or folders in this directory.
 
 ## Automatic information gathering
