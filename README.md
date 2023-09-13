@@ -1,5 +1,6 @@
 # About this script
 This script is a utility script that parses information from one or more switches, processes that data and outputs the data into tables in an excel workbook.
+Specifically, the MAC table, ARP entries and VLAN information are parsed and aggregated into a more convenient output.
 
 ## Where to place the configuration output data
 The script will look for configuration information in a directory called show_files (exact spelling). Create the show_files directory in the same folder where the cppm_helper.py file is then create a directory for each switch vendor OS that you have data for.
