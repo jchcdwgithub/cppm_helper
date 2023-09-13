@@ -40,7 +40,9 @@ The MAC OUI to vendor information is stored in a CSV file stored in the static d
 file of the same name and format to the static folder. Call it MAC_OUI.csv.
 
 ## Downloading the script
-Either pull the script from github or download it directly through the code button on github.
+If you have git installed you can clone this repository directly from github.
+`git clone https://github.com/jchcdwgithub/cppm_helper.git`
+You can also download the code if you visit the github page.
 
 ## First time python environment setup
 
