@@ -48,7 +48,7 @@ All the dependencies for this script are found in the requirements.txt file. The
 
 `python -m pip install -r requirements.txt`
 
-Note that your environment might use python3 and pip3 instead.
+Note that your environment might use python3 and pip3 instead. You might also require escalated privileges (sudo mode) to install these dependencies.
 
 ## Running the script
 
