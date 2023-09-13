@@ -26,14 +26,14 @@ show mac-address and show arp. These files will be saved in the show_files direc
 ---
 hosts:
   aos-cx:
-   - host: 10.10.0.100
-     credentials:
-       username : admin
-       password : aruba123
-    - host: 10.10.0.101
+  - host: 10.10.0.100
       credentials:
-       username : admin
-       password : aruba12$
+        username : admin
+        password : aruba123
+  - host: 10.10.0.101
+      credentials:
+        username : admin
+        password : aruba12$
 ```
 ### Updating the MAC OUI information
 The MAC OUI to vendor information is stored in a CSV file stored in the static directory. If this information needs to be updated, upload a new CSV
