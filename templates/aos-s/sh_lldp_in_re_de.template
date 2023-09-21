@@ -1,0 +1,16 @@
+Value LOCAL_PORT ([A-Z]+\d+)
+Value CHASSIS_ID ([a-fA-F0-9]{2}( [a-fA-F0-9]{2}){5})
+Value PORT_ID (.*)
+Value SYSTEM_NAME (.*)
+Value SYSTEM_DESCRIPTION (.*)
+Value PORT_DESCRIPTION (.*)
+
+Start
+ ^ *Local Port +: +${LOCAL_PORT}
+ ^ *ChassisType +:.*
+ ^ *ChassisId +: +${CHASSIS_ID}
+ ^ *PortType +:.*
+ ^ *PortId +: +${PORT_ID}
+ ^ *SysName +: +${SYSTEM_NAME}
+ ^ *System Descr +: +${SYSTEM_DESCRIPTION}
+ ^ *PortDescr +: +${PORT_DESCRIPTION} -> Record

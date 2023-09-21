@@ -1,0 +1,11 @@
+Value PORT (\w+)
+Value LACP_ENABLED (Active|Passive|On)
+Value TRUNK_GROUP (Trk\d+)
+Value PORT_STATUS (Up|Down)
+Value PARTNER (Yes|No)
+Value LACP_STATUS (\w+)
+Value ADMIN_KEY (.+)
+Value OPER_KEY (\d+)
+
+Start
+ ^ *${PORT} +${LACP_ENABLED} +${TRUNK_GROUP} +${PORT_STATUS} +${PARTNER} +${LACP_STATUS} +${ADMIN_KEY} +${OPER_KEY}.* -> Record

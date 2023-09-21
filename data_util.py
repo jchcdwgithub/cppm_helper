@@ -17,6 +17,34 @@ def get_vlan_from_port_info(port_info:str) -> str:
         vlan_id = 'na'
     return vlan_id
 
+def convert_subnet_mask_to_subnet_length(subnet_mask:str) -> str:
+    '''
+    Given a subnet mask like 255.0.0.0 turn it into a subnet length ranging from 0 to 32.
+    '''
+    subnet_mask_to_length = {
+        '0' : 0,
+        '128' : 1,
+        '192' : 2,
+        '224' : 3,
+        '240' : 4,
+        '248' : 5,
+        '252' : 6,
+        '254' : 7,
+        '255' : 8
+    }
+
+    subnet_sections = subnet_mask.split('.')
+    if len(subnet_sections) != 4:
+        raise ValueError('Subnet must be in the form x.x.x.x')
+    
+    subnet_length = 0
+    for section in subnet_sections:
+        if not section in subnet_mask_to_length:
+            raise ValueError('Invalid octect value for subnet mask.')
+        subnet_length += subnet_mask_to_length[section]
+    
+    return str(subnet_length)
+
 def os_has_no_data_in_tables(tables:dict, os_name:str) -> bool:
     '''
     Returns true if the key entry os_name in the tables dictionary is an empty list.

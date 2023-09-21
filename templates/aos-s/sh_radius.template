@@ -1,0 +1,11 @@
+Value RADIUS_IP (\d{1,3}(\.\d{1,3}){3})
+Value AUTH_PORT (\d{1,5})
+Value ACCT_PORT (\d{1,5})
+Value COA (Yes|No)
+Value TIME_WINDOW (\d+)
+Value ENCRYPTION_KEY (.+)
+Value OOBM (Yes|No)
+
+Start
+ ^ *Status and Counters - General RADIUS Information
+ ^ *${RADIUS_IP} +${AUTH_PORT} +${ACCT_PORT} +${COA} +${TIME_WINDOW} +\| +${ENCRYPTION_KEY} +${OOBM} -> Record

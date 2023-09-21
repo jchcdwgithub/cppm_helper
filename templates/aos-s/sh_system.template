@@ -1,0 +1,11 @@
+Value SYSTEM_NAME (.+)
+Value SOFTWARE_VERSION ([A-Z]{2}\.\d{2}\.\d{2}\.\d{4})
+Value BASE_MAC ([a-fA-F0-9]{6}-[a-fA-F0-9]{6})
+Value ROM_VERSION ([A-Z]{2}\.\d{2}\.\d{2}\.\d{4})
+Value SERIAL_NUMBER (\w{10})
+
+Start
+ ^ *Status and Counters - General System Information
+ ^ *System Name +: +${SYSTEM_NAME}
+ ^ *Software revision +: +${SOFTWARE_VERSION} +Base MAC Addr +: +${BASE_MAC}
+ ^ *ROM Version +: +${ROM_VERSION} +Serial Number +: +${SERIAL_NUMBER} -> Record

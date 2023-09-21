@@ -1,0 +1,13 @@
+Value INTERFACE (\w+)
+Value NAME (.+)
+Value TAGGED_VLAN (.*)
+Value UNTAGGED_VLAN (.*)
+Value TRUNK (trk\d+.*)
+
+Start
+ ^interface ${INTERFACE}
+ ^ *name "${NAME}" -> Continue
+ ^ *tagged +vlan +${TAGGED_VLAN} -> Continue
+ ^ *untagged +vlan +${UNTAGGED_VLAN} -> Continue
+ ^ *trunk ${TRUNK} -> Continue
+ ^ *exit -> Record

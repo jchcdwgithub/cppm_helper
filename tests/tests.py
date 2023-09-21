@@ -6,6 +6,7 @@ sys.path.append(parent)
 import data_util
 import excel_util
 import file_util
+import pytest
 
 def test_extract_mac_oui_extracts_half_of_colon_separated_mac():
     mac = '00:1b:bc:16:00:c3'
@@ -245,3 +246,47 @@ def test_create_vlan_table_from_show_mac_address_info_creates_a_vlan_table_witho
     for row_e, row_g in zip(expected['data'], generated['data']):
         for ele_e, ele_g in zip(row_e, row_g):
             assert(ele_e == ele_g)
+
+def test_convert_subnet_mask_to_subnet_length_raises_error_for_invalid_octect_values():
+    with pytest.raises(ValueError) as ve:
+        generated = data_util.convert_subnet_mask_to_subnet_length('255.255.255.111')
+
+def test_convert_subnet_mask_to_subnet_length_converts_all_lengths_correctly():
+    cases = [
+        '0.0.0.0',
+        '128.0.0.0',
+        '192.0.0.0',
+        '224.0.0.0',
+        '240.0.0.0',
+        '248.0.0.0',
+        '252.0.0.0',
+        '254.0.0.0',
+        '255.0.0.0',
+        '255.128.0.0',
+        '255.192.0.0',
+        '255.224.0.0',
+        '255.240.0.0',
+        '255.248.0.0',
+        '255.252.0.0',
+        '255.254.0.0',
+        '255.255.0.0',
+        '255.255.128.0',
+        '255.255.192.0',
+        '255.255.224.0',
+        '255.255.240.0',
+        '255.255.248.0',
+        '255.255.252.0',
+        '255.255.254.0',
+        '255.255.255.0',
+        '255.255.255.128',
+        '255.255.255.192',
+        '255.255.255.224',
+        '255.255.255.240',
+        '255.255.255.248',
+        '255.255.255.252',
+        '255.255.255.254',
+        '255.255.255.255',
+    ]
+    for index,case in enumerate(cases):
+        case_len = data_util.convert_subnet_mask_to_subnet_length(case)
+        assert int(case_len) == index
