@@ -1,4 +1,4 @@
-Value LOCAL_PORT ([A-Z]+\d+)
+Value LOCAL_PORT (\w+\/?\w+)
 Value CHASSIS_ID ([a-fA-F0-9]{2}( [a-fA-F0-9]{2}){5})
 Value PORT_ID (.*)
 Value SYSTEM_NAME (.*)
