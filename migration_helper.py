@@ -33,7 +33,35 @@ for supported_os in supported_oses:
                 sf_lines = sf.readlines()
                 hostname = data_util.extract_hostname_from_cli_output(sf_lines)
                 device_names.append(hostname)
-    
+    all_vlans = set()
+    for device in results:
+        device_vlans = device[4]
+        device_vlan_headers = device_vlans[0]
+        device_vlan_data = device_vlans[1]
+        vlan_id_index = device_vlan_headers.index('VLAN_ID')
+        for vlan in device_vlan_data:
+            vlan_id = vlan[vlan_id_index]
+            if not vlan_id in all_vlans:
+                all_vlans.add(vlan_id)
+
+    for device in results:
+        device_vlans = device[4]
+        device_vlan_headers = device_vlans[0]
+        device_vlan_data = device_vlans[1]
+        vlan_id_index = device_vlan_headers.index('VLAN_ID')
+        vlans_not_in_device_vlans = []
+        device_vlans = set()
+        for vlan in device_vlan_data:
+            vlan_id = vlan[vlan_id_index]
+            device_vlans.add(vlan_id)
+        for vlan in all_vlans:
+            if not vlan in device_vlans:
+                vlan_row = [vlan]
+                for header in device_vlan_headers[1:]:
+                    vlan_row.append('')
+                device_vlan_data.append(vlan_row)
+        device_vlan_data.sort(key=lambda x : int(x[0]))
+
     vlan_tables = []
     worksheet_names.append('Layer 2 & 3')
     tables.append(vlan_tables)
