@@ -1,4 +1,5 @@
 import os
+import re
 
 def extract_oui(mac:str) -> str:
     dividers = [':','-','.']
@@ -165,6 +166,40 @@ def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str]) 
             current_item.append(item_data[header])
         table.append(current_item)
     return table
+
+def extract_hostname_from_cli_output(cli_output:list[str]) -> str:
+    '''
+    Given a list of CLI output, attempt to extract the hostname from the output. Note that this information
+    only exists if the file was logged from a putty or similar manual session.
+    '''
+    show_command_line = re.compile(r'.*# *sho?w?')
+    for line in cli_output:
+        if show_command_line.match(line) is not None:
+            hostname, _ = line.split('#')
+            return hostname
+    return ''
+
+def convert_vlan_ip_subnet_to_slash_notation(vlan_info:list[list[str]]) -> list[str]:
+    '''
+    Converts the VLAN IP_ADDRESS and SUBNET mask into an IP_ADDRESS/MASK format where
+    mask is a two digit number.
+    '''
+    vlan_headers = vlan_info[0]
+    vlan_data = vlan_info[1]
+    ip_address_index = vlan_headers.index('IP_ADDRESS')
+    ip_subnet_index = vlan_headers.index('SUBNET')
+    vlan_id_index = vlan_headers.index('VLAN_ID')
+    ip_address_subnet = [['VLAN_ID', 'IP_ADDRESS'],[]]
+    for vlan in vlan_data:
+        vlan_id = vlan[vlan_id_index]
+        vlan_ip_address = vlan[ip_address_index]
+        if vlan_ip_address == '':
+            ip_address_subnet[1].append([vlan_id, ''])
+        else:
+            vlan_subnet_mask = vlan[ip_subnet_index]
+            vlan_subnet_length = convert_subnet_mask_to_subnet_length(vlan_subnet_mask)
+            ip_address_subnet[1].append([vlan_id, vlan_ip_address + '/' + vlan_subnet_length])
+    return ip_address_subnet
 
 def os_has_no_data_in_tables(tables:dict, os_name:str) -> bool:
     '''

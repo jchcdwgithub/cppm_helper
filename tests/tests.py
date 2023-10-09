@@ -401,3 +401,52 @@ def test_remove_trunk_from_port_name_removes_the_trailing_trunk_portion_from_all
     for e_port, g_port in zip(expected_ports, generated_ports):
         for e_item, g_item in zip(e_port, g_port):
             assert e_item == g_item
+
+def test_extract_hostname_from_cli_output_extracts_hostname_on_show_command_lines():
+    test_data = [
+        'host1#\n',
+        '\n',
+        'host1# sh run int\n',
+    ]
+    expected = 'host1'
+    generated = data_util.extract_hostname_from_cli_output(test_data)
+    assert expected == generated
+
+def test_extract_hostname_from_cli_output_returns_empty_string_when_no_host_prompt_exists():
+    test_data = [
+        'some table\n',
+        'data1 data2 data3\n',
+        'end table\n'
+    ]
+    expected = ''
+    generated = data_util.extract_hostname_from_cli_output(test_data)
+    assert expected == generated
+
+def test_convert_vlan_ip_subnet_to_slash_notation_converts_ip_address_subnet_mask_correctly():
+    test_data = [
+        ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS', 'SUBNET', 'IP_HELPER_ADDRESS'],
+        [
+            ['1', 'DEFAULT_VLAN', '', '', []],
+            ['2', 'StaffVLAN', '10.200.1.1', '255.255.255.0', []],
+            ['3', 'VLAN3', '10.3.3.3', '255.255.0.0', []]
+        ]
+    ]
+    expected = [
+        ['VLAN_ID', 'IP_ADDRESS'],
+        [
+            ['1', ''],
+            ['2', '10.200.1.1/24'],
+            ['3', '10.3.3.3/16']
+        ]
+    ]
+    generated = data_util.convert_vlan_ip_subnet_to_slash_notation(test_data)
+    e_headers = expected[0]
+    g_headers = generated[0]
+    for e_header, g_header in zip(e_headers,g_headers):
+        assert e_header == g_header
+    
+    e_vlan_data = expected[1]
+    g_vlan_data = generated[1]
+    for e_row, g_row in zip(e_vlan_data, g_vlan_data):
+        for e_item, g_item in zip(e_row, g_row):
+            assert e_item == g_item 
