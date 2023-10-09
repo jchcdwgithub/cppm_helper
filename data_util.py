@@ -17,6 +17,155 @@ def get_vlan_from_port_info(port_info:str) -> str:
         vlan_id = 'na'
     return vlan_id
 
+def convert_subnet_mask_to_subnet_length(subnet_mask:str) -> str:
+    '''
+    Given a subnet mask like 255.0.0.0 turn it into a subnet length ranging from 0 to 32.
+    '''
+    subnet_mask_to_length = {
+        '0' : 0,
+        '128' : 1,
+        '192' : 2,
+        '224' : 3,
+        '240' : 4,
+        '248' : 5,
+        '252' : 6,
+        '254' : 7,
+        '255' : 8
+    }
+
+    subnet_sections = subnet_mask.split('.')
+    if len(subnet_sections) != 4:
+        raise ValueError('Subnet must be in the form x.x.x.x')
+    
+    subnet_length = 0
+    for section in subnet_sections:
+        if not section in subnet_mask_to_length:
+            raise ValueError('Invalid octect value for subnet mask.')
+        subnet_length += subnet_mask_to_length[section]
+    
+    return str(subnet_length)
+
+def process_trunks(os_name:str, interface_details:list[list[str]]) -> list[list[str]]:
+    '''
+    Takes a table of interfaces and extracts the trunking (LACP) information. Returns
+    a table with the trunk interfaces as entries in the interface table.
+    '''
+    if os_name == 'aos-s':
+        table_with_trunk_ints = [interface_details[0],[]]
+        trunk_membership_mappings = {}
+        trunks = []
+        if len(interface_details) == 0:
+            raise ValueError('Empty interface details table passed to process_trunks')
+        for interface in interface_details[1]:
+            trunk_info = interface[-1]
+            if trunk_info != '':
+                if ' ' in trunk_info:
+                    trunk_int, lacp_mode = trunk_info.split(' ')
+                else:
+                    trunk_int = trunk_info
+                    lacp_mode = ''
+                if trunk_int in trunk_membership_mappings:
+                    trunk_membership_mappings[trunk_int].append(interface)
+                else:
+                    trunk_membership_mappings[trunk_int] = [interface]
+            elif 'trk' in interface[0].lower():
+                trunks.append(interface)
+            else:
+                table_with_trunk_ints[1].append(interface)
+        for trunk_int in trunks:
+            table_with_trunk_ints[1].append(trunk_int)
+            trunk_name = trunk_int[0].lower()
+            for member_int in trunk_membership_mappings[trunk_name]:
+                table_with_trunk_ints[1].append(member_int)
+        return table_with_trunk_ints
+
+def remove_trunk_from_port_name(interface_status_table:list[list[str]]) -> list[list[str]]:
+    '''
+    Ports that are part of trunks (LACP) have the trunk appended to their names. This function removes the
+    trunk portion and returns just the port name. All other information is preserved and passed back.
+    '''
+    interfaces = interface_status_table[1]
+    for interface in interfaces:
+        old_name = interface[0]
+        new_name = ''
+        if '-Trk' in old_name:
+            new_name, _ = old_name.split('-')
+            interface[0] = new_name
+    return interface_status_table
+
+def remove_trunk_from_port_name(interface_status_table:list[list[str]]) -> list[list[str]]:
+    '''
+    Ports that are part of trunks (LACP) have the trunk appended to their names. This function removes the
+    trunk portion and returns just the port name. All other information is preserved and passed back.
+    '''
+    interfaces = interface_status_table[1]
+    for interface in interfaces:
+        old_name = interface[0]
+        new_name = ''
+        if '-Trk' in old_name:
+            new_name, _ = old_name.split('-')
+            interface[0] = new_name
+    return interface_status_table
+
+def update_new_header_indices(parsed_data_header:list[str], new_headers:dict[str,str]):
+    '''
+    Find and update the new_header indices using the parsed_data_header. If the new_header name does not
+    correspond to anything in the parsed_data_header list, panic and exit.
+    '''
+    try:
+        for new_header in new_headers:
+            new_headers[new_header]['index'] = parsed_data_header.index(new_header)
+    except Exception as e:
+        print('Could not find one of the entries in new_header in the parsed_data_header list. All entries in the new_header dict must be present in the parsed_data_header list.')
+
+def add_new_headers_to_parsed_data(existing_datastructure:dict[str,str],parsed_data_info:list[list[str]], new_headers:dict[str,str], matched_parameter_index:int):
+    '''
+    Add new data to entries in the parsed_data list of entries. Entries are added based on the matched_parameter_index
+    which is the value that must be similar across different parsed datastructures. Throws an error if there is no match
+    for a key in the parsed_data_info.
+    '''
+    for new_header in new_headers:
+        new_header_name = new_headers[new_header]['new_name']
+        existing_datastructure['headers'].append(new_header_name)
+    try: 
+        for item in parsed_data_info:
+            item_name = item[matched_parameter_index]
+            corresponding_item = existing_datastructure['data'][item_name]
+            for new_header in new_headers:
+                new_header_name = new_headers[new_header]['new_name']
+                header_index = new_headers[new_header]['index']
+                corresponding_item[new_header_name] = item[header_index]
+    except Exception as e:
+        print(e)
+    
+def fill_data_with_empty_values(existing_datastructure:dict[str,str], new_headers:dict[str,str]):
+    '''
+    Used after the add_new_headers_to_parsed_data function. Fills in empty values for items that did not
+    have a corresponding entry.
+    '''
+    total_headers = len(existing_datastructure['headers'])
+    for _,item_info in existing_datastructure['data'].items():
+        num_entries_in_item = len(item_info.keys())
+        if total_headers-1 != num_entries_in_item:
+            for new_header in new_headers:
+                new_header_name = new_headers[new_header]['new_name']
+                item_info[new_header_name] = ''
+
+def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str]) -> list[list[str]]:
+    '''
+    Converts the dictionary of items into a list of list of items appropriate for the pandas.to_excel method to
+    write the information to an excel table.
+    '''
+    table = []
+    ds_dict_data = existing_datastructure['data'] 
+    ds_headers = existing_datastructure['headers']
+    for key,item_data in ds_dict_data.items():
+        current_item = [key]
+        for header in ds_headers[1:]:
+            current_item.append(item_data[header])
+        table.append(current_item)
+    return table
+
 def os_has_no_data_in_tables(tables:dict, os_name:str) -> bool:
     '''
     Returns true if the key entry os_name in the tables dictionary is an empty list.

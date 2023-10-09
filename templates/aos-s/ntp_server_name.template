@@ -1,0 +1,4 @@
+Value NTP_SERVER_NAME (.*)
+
+Start
+ ^ *ntp server-name "${NTP_SERVER_NAME}" -> Record

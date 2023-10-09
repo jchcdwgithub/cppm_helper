@@ -6,6 +6,7 @@ sys.path.append(parent)
 import data_util
 import excel_util
 import file_util
+import pytest
 
 def test_extract_mac_oui_extracts_half_of_colon_separated_mac():
     mac = '00:1b:bc:16:00:c3'
@@ -245,3 +246,158 @@ def test_create_vlan_table_from_show_mac_address_info_creates_a_vlan_table_witho
     for row_e, row_g in zip(expected['data'], generated['data']):
         for ele_e, ele_g in zip(row_e, row_g):
             assert(ele_e == ele_g)
+
+def test_convert_subnet_mask_to_subnet_length_raises_error_for_invalid_octect_values():
+    with pytest.raises(ValueError) as ve:
+        generated = data_util.convert_subnet_mask_to_subnet_length('255.255.255.111')
+
+def test_convert_subnet_mask_to_subnet_length_converts_all_lengths_correctly():
+    cases = [
+        '0.0.0.0',
+        '128.0.0.0',
+        '192.0.0.0',
+        '224.0.0.0',
+        '240.0.0.0',
+        '248.0.0.0',
+        '252.0.0.0',
+        '254.0.0.0',
+        '255.0.0.0',
+        '255.128.0.0',
+        '255.192.0.0',
+        '255.224.0.0',
+        '255.240.0.0',
+        '255.248.0.0',
+        '255.252.0.0',
+        '255.254.0.0',
+        '255.255.0.0',
+        '255.255.128.0',
+        '255.255.192.0',
+        '255.255.224.0',
+        '255.255.240.0',
+        '255.255.248.0',
+        '255.255.252.0',
+        '255.255.254.0',
+        '255.255.255.0',
+        '255.255.255.128',
+        '255.255.255.192',
+        '255.255.255.224',
+        '255.255.255.240',
+        '255.255.255.248',
+        '255.255.255.252',
+        '255.255.255.254',
+        '255.255.255.255',
+    ]
+    for index,case in enumerate(cases):
+        case_len = data_util.convert_subnet_mask_to_subnet_length(case)
+        assert int(case_len) == index
+
+def test_process_trunks_returns_original_table_when_no_trunks_exist():
+    test_data = [
+        ['INTERFACE_NAME', 'TAGGED_VLAN', 'UNTAGGED_VLAN', 'TRUNK'],
+        [['A1', '', '1', ''],
+        ['A2', '1,20,45,100', '10', ''],
+        ['A3', '', '1', '']]
+    ]
+    generated = data_util.process_trunks('aos-s', test_data)
+    for e_row, g_row in zip(test_data, generated):
+        for e_item, g_item in zip(e_row, g_row):
+            assert e_item == g_item
+
+def test_process_trunks_groups_interfaces_under_trunks():
+    test_data = [
+        ['INTERFACE_NAME', 'TAGGED_VLAN', 'UNTAGGED_VLAN', 'TRUNK'],
+        [['A1', '10,20,30', '40', 'trk15 lacp'],
+        ['A2', '10,20,30', '40', 'trk16 lacp'],
+        ['A3', '10,20,30', '40', 'trk17 lacp'],
+        ['B1', '10,20,30', '40', 'trk15 lacp'],
+        ['B2', '10,20,30', '40', 'trk16 lacp'],
+        ['B3', '10,20,30', '40', 'trk17 lacp'],
+        ['Trk15', '10,20,30', '40', ''],
+        ['Trk16', '10,20,30', '40', ''],
+        ['Trk17', '10,20,30', '40', ''],]
+    ]
+    expected = [
+        ['INTERFACE_NAME', 'TAGGED_VLAN', 'UNTAGGED_VLAN', 'TRUNK'],
+        [['Trk15', '10,20,30', '40', ''],
+        ['A1', '10,20,30', '40', 'trk15 lacp'],
+        ['B1', '10,20,30', '40', 'trk15 lacp'],
+        ['Trk16', '10,20,30', '40', ''],
+        ['A2', '10,20,30', '40', 'trk16 lacp'],
+        ['B2', '10,20,30', '40', 'trk16 lacp'],
+        ['Trk17', '10,20,30', '40', ''],
+        ['A3', '10,20,30', '40', 'trk17 lacp'],
+        ['B3', '10,20,30', '40', 'trk17 lacp'],]
+    ]
+    generated = data_util.process_trunks('aos-s', test_data)
+    for e_row, g_row in zip(expected, generated):
+        for e_item, g_item in zip(e_row, g_row):
+            assert e_item == g_item
+
+def test_process_trunks_includes_non_trunk_interfaces_with_trunk_interfaces():
+    test_data = [
+        ['INTERFACE_NAME', 'TAGGED_VLAN', 'UNTAGGED_VLAN', 'TRUNK'],
+        [['A1', '10,20,30', '40', 'trk15 lacp'],
+        ['A2', '10,20,30', '40', 'trk16 lacp'],
+        ['A3', '10,20,30', '40', 'trk17 lacp'],
+        ['B1', '10,20,30', '40', 'trk15 lacp'],
+        ['B2', '10,20,30', '40', 'trk16 lacp'],
+        ['B3', '10,20,30', '40', 'trk17 lacp'],
+        ['B4', '10,20,30', '40', ''],
+        ['B5', '10,20,30', '40', ''],
+        ['Trk15', '10,20,30', '40', ''],
+        ['Trk16', '10,20,30', '40', ''],
+        ['Trk17', '10,20,30', '40', ''],]
+    ]
+    expected = [
+        ['INTERFACE_NAME', 'TAGGED_VLAN', 'UNTAGGED_VLAN', 'TRUNK'],
+        [['B4', '10,20,30', '40', ''],
+        ['B5', '10,20,30', '40', ''],
+        ['Trk15', '10,20,30', '40', ''],
+        ['A1', '10,20,30', '40', 'trk15 lacp'],
+        ['B1', '10,20,30', '40', 'trk15 lacp'],
+        ['Trk16', '10,20,30', '40', ''],
+        ['A2', '10,20,30', '40', 'trk16 lacp'],
+        ['B2', '10,20,30', '40', 'trk16 lacp'],
+        ['Trk17', '10,20,30', '40', ''],
+        ['A3', '10,20,30', '40', 'trk17 lacp'],
+        ['B3', '10,20,30', '40', 'trk17 lacp'],]
+    ]
+    generated = data_util.process_trunks('aos-s', test_data)
+    for e_row, g_row in zip(expected, generated):
+        for e_item, g_item in zip(e_row, g_row):
+            assert e_item == g_item
+
+def test_remove_trunk_from_port_name_removes_the_trailing_trunk_portion_from_all_trunk_members():
+    test_data = [
+        ['PORT', 'NAME', 'STATUS', 'CONFIG_MODE', 'SPEED', 'TYPE', 'TAGGED', 'UNTAGGED'],
+        [
+            ['A1-Trk15', 'D122i', 'Down', '', '', '', 'multi', '1'],
+            ['A2-Trk20', 'D105B-S...', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A3-Trk25', 'D105B-A...', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A4-Trk30', 'D105B-HP', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A5', 'D200', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A6', 'Aruba92...', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '15'],
+            ['A7', 'open - ...', 'Down', '', '', '', 'multi', '15'],
+            ['A8', 'COMCAST', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'No', '213'],
+        ]
+    ]
+    
+    expected = [
+        ['PORT', 'NAME', 'STATUS', 'CONFIG_MODE', 'SPEED', 'TYPE', 'TAGGED', 'UNTAGGED'],
+        [
+            ['A1', 'D122i', 'Down', '', '', '', 'multi', '1'],
+            ['A2', 'D105B-S...', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A3', 'D105B-A...', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A4', 'D105B-HP', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A5', 'D200', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '1'],
+            ['A6', 'Aruba92...', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'multi', '15'],
+            ['A7', 'open - ...', 'Down', '', '', '', 'multi', '15'],
+            ['A8', 'COMCAST', 'Up', 'Auto', '10GigFD', '10GbE-GEN', 'No', '213'],
+        ]
+    ]
+    generated = data_util.remove_trunk_from_port_name(test_data)
+    expected_ports = expected[1]
+    generated_ports = generated[1]
+    for e_port, g_port in zip(expected_ports, generated_ports):
+        for e_item, g_item in zip(e_port, g_port):
+            assert e_item == g_item

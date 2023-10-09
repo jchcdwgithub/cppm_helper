@@ -15,6 +15,7 @@ pyvenv.cfg
 #local runners
 local_runner.py
 hosts.yml
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
