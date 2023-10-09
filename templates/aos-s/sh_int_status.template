@@ -4,7 +4,7 @@ Value STATUS (Up|Down)
 Value CONFIG_MODE (\w*)
 Value SPEED ([0-9a-zA-Z]*)
 Value TYPE ([0-9a-zA-Z-]*)
-Value TAGGED (\w*)
+Value Required TAGGED (multi|No|[1-9]\d*)
 Value UNTAGGED (\d{1,4})
 
 Start

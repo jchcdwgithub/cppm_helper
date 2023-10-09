@@ -1,4 +1,4 @@
-Value INTERFACE (\w+)
+Value Required INTERFACE (\w+)
 Value NAME (.+)
 Value TAGGED_VLAN (.*)
 Value UNTAGGED_VLAN (.*)
