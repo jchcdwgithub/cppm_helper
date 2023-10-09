@@ -23,7 +23,7 @@ The switch OS names need to be exact. Currently supported folder names are: aos-
 ## Automatic information gathering
 If there is connectivity to the host(s) from the machine where this script will be executing then a hosts.yml file can be created in the main directory.
 This is where the cppm_helper.py file resides. List the hosts and their information in the hosts.yml file, again under a specific vendor OS. Currently
-only AOS-CX hosts are supported. With this information, the script will SSH into each host listed and gather three pieces of information: show vlan,
+only AOS-CX and AOS-S hosts are supported. With this information, the script will SSH into each host listed and gather three pieces of information: show vlan,
 show mac-address and show arp. These files will be saved in the show_files directory. Each filename will be the hostname of the host it was derived from.
 
 ### hosts.yml example
@@ -35,6 +35,7 @@ hosts:
       credentials:
         username : admin
         password : aruba123
+  aos-s:
   - host: 10.10.0.101
       credentials:
         username : admin
