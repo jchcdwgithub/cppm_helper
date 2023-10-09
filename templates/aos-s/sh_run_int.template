@@ -1,7 +1,7 @@
-Value Required INTERFACE (\w+)
+Value Required INTERFACE (\w+\/?\w+)
 Value NAME (.+)
 Value TAGGED_VLAN (.*)
-Value UNTAGGED_VLAN (.*)
+Value Required UNTAGGED_VLAN (.*)
 Value TRUNK (trk\d+.*)
 
 Start
