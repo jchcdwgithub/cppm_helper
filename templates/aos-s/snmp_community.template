@@ -1,0 +1,5 @@
+Value SNMP_COMMUNITY (".*")
+Value SNMP_ACCESS (.*)
+
+Start
+ ^snmp-server community ${SNMP_COMMUNITY} *${SNMP_ACCESS} -> Record

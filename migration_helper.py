@@ -11,7 +11,17 @@ templates_folder = os.path.join(cwd, 'templates')
 host_index = 1
 for supported_os in supported_oses:
     aos_s_templates_folder = os.path.join(templates_folder, supported_os)
-    templates = ['sh_int_status.template', 'sh_run_int.template','sh_lldp_in_re_de.template', 'sh_cdp_ne_de.template', 'sh_run_vlans.template']
+    templates = ['sh_int_status.template',
+                 'sh_run_int.template',
+                 'sh_lldp_in_re_de.template', 
+                 'sh_cdp_ne_de.template', 
+                 'sh_run_vlans.template',
+                 'run_radius.template', 
+                 'ip_dns_server_address.template', 
+                 'ip_dns_domain_name.template', 
+                 'snmp_community.template',
+                 'sh_system.template',
+                 'sh_module.template']
     results = []
     worksheet_names = []
     tables = []
@@ -33,6 +43,81 @@ for supported_os in supported_oses:
                 sf_lines = sf.readlines()
                 hostname = data_util.extract_hostname_from_cli_output(sf_lines)
                 device_names.append(hostname)
+
+    worksheet_names.append('Overview')
+
+    all_systems = {}
+    systems_data = []
+    systems_table = {}
+
+    for device_name, device in zip(device_names, results):
+        print(f'aggregating show information for {device_name}...')
+
+        print(f'gathering system information for {device_name}...')
+        current_system = device[9]
+        system_headers = current_system[0]
+        system_data = current_system[1]
+        headers_to_include = ['SYSTEM_NAME', 'SOFTWARE_VERSION', 'SERIAL_NUMBER']        
+        for data in system_data:
+            current_system_data = {}
+            for header,attribute in zip(system_headers, data):
+                if header == 'SERIAL_NUMBER':
+                    all_systems[attribute.strip()] = current_system_data
+                    system_name = attribute
+                elif header in headers_to_include:
+                    current_system_data[header] = attribute
+        
+        system_table = {}
+        system_table['headers'] = headers_to_include
+        system_table['data'] = all_systems 
+        
+        system_outputs = {}
+        system_outputs['sh_module'] = {
+            'parsed_data' : device[10],
+            'new_headers' : {
+                'CHASSIS_MODEL' : {
+                    'index' : 0,
+                    'new_name' : 'CHASSIS_MODEL'
+                },
+            }
+        }
+        
+        for output,output_data in system_outputs.items():
+            output_headers = output_data['parsed_data'][0]
+            output_info = output_data['parsed_data'][1]
+            output_new_headers = output_data['new_headers']
+            data_util.update_new_header_indices(output_headers, output_new_headers)
+            data_util.add_new_headers_to_parsed_data(system_table, output_info, output_new_headers, 1)
+            data_util.fill_data_with_empty_values(system_table, output_new_headers)
+
+
+    systems_table['headers'] = [
+        'SERIAL_NUMBER',
+        'SYSTEM_NAME',
+        'CHASSIS_MODEL',
+        'SOFTWARE_VERSION'
+    ]
+    systems_table['name'] = 'System Info'
+    systems_table['data'] = all_systems
+    systems_table_data = data_util.convert_dictionary_to_table_structure(systems_table)
+    systems_table['data'] = systems_table_data
+
+    new_header_order = [
+        'LOCATION',
+        'SUB_LOCATION',
+        'SYSTEM_NAME',
+        'MGMT_IP',
+        'MGMT_SOURCE',
+        'CHASSIS_MODEL',
+        'SERIAL_NUMBER',
+        'SOFTWARE_VERSION'
+    ]
+
+    reordered_table = data_util.reorder_table_based_on_new_header_order([systems_table['headers'],systems_table['data']], new_header_order)
+    systems_table['data'] = reordered_table[1]
+    systems_table['headers'] = reordered_table[0] 
+    tables.append([[systems_table]])
+
     all_vlans = set()
     for device in results:
         device_vlans = device[4]
@@ -67,7 +152,7 @@ for supported_os in supported_oses:
     tables.append(vlan_tables)
 
     for device_name, device in zip(device_names, results):
-        print(f'aggregating show information for {device_name}...')
+
     #create individual device port tables
         print(f'aggregating L2/3 information into tables...')
         device_vlans = {}

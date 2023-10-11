@@ -450,3 +450,77 @@ def test_convert_vlan_ip_subnet_to_slash_notation_converts_ip_address_subnet_mas
     for e_row, g_row in zip(e_vlan_data, g_vlan_data):
         for e_item, g_item in zip(e_row, g_row):
             assert e_item == g_item 
+
+
+def test_reorder_table_based_on_new_header_order_reorders_correctly_without_extra_columns_added():
+    test_data = [
+        ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS', 'SUBNET', 'IP_HELPER_ADDRESS'],
+        [
+            ['1', 'DEFAULT_VLAN', '', '', []],
+            ['2', 'StaffVLAN', '10.200.1.1', '255.255.255.0', []],
+            ['3', 'VLAN3', '10.3.3.3', '255.255.0.0', ['10.10.10.10']]
+        ]
+    ]
+    new_headers_order = [
+        'VLAN_NAME',
+        'IP_HELPER_ADDRESS',
+        'VLAN_ID',
+        'IP_ADDRESS',
+        'SUBNET'
+    ]
+    expected = [
+        ['VLAN_NAME', 'IP_HELPER_ADDRESS', 'VLAN_ID', 'IP_ADDRESS', 'SUBNET'],
+        [
+            ['DEFAULT_VLAN', [], '1', '', ''],
+            ['StaffVLAN', [], '2', '10.200.1.1', '255.255.255.0'],
+            ['VLAN3', ['10.10.10.10'], '3', '10.3.3.3', '255.255.0.0']
+        ]
+    ]
+
+    generated = data_util.reorder_table_based_on_new_header_order(test_data, new_headers_order)
+    e_headers = expected[0]
+    e_data = expected[1]
+    g_headers = generated[0]
+    g_data = generated[1]
+    for e_header, g_header in zip(e_headers,g_headers):
+        assert e_header == g_header
+    for e_row,g_row in zip(e_data,g_data):
+        for e_item,g_item in zip(e_row,g_row):
+            assert e_item == g_item
+
+def test_reorder_table_based_on_new_header_order_reorders_correctly_and_adds_extra_columns():
+    test_data = [
+        ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS', 'SUBNET', 'IP_HELPER_ADDRESS'],
+        [
+            ['1', 'DEFAULT_VLAN', '', '', []],
+            ['2', 'StaffVLAN', '10.200.1.1', '255.255.255.0', []],
+            ['3', 'VLAN3', '10.3.3.3', '255.255.0.0', ['10.10.10.10']]
+        ]
+    ]
+    new_headers_order = [
+        'VLAN_NAME',
+        'IP_HELPER_ADDRESS',
+        'EXTRA1',
+        'VLAN_ID',
+        'IP_ADDRESS',
+        'SUBNET',
+    ]
+    expected = [
+        ['VLAN_NAME', 'IP_HELPER_ADDRESS', 'EXTRA1', 'VLAN_ID', 'IP_ADDRESS', 'SUBNET',],
+        [
+            ['DEFAULT_VLAN', [], '', '1', '', ''],
+            ['StaffVLAN', [], '', '2', '10.200.1.1', '255.255.255.0'],
+            ['VLAN3', ['10.10.10.10'], '', '3', '10.3.3.3', '255.255.0.0']
+        ]
+    ]
+
+    generated = data_util.reorder_table_based_on_new_header_order(test_data, new_headers_order)
+    e_headers = expected[0]
+    e_data = expected[1]
+    g_headers = generated[0]
+    g_data = generated[1]
+    for e_header, g_header in zip(e_headers,g_headers):
+        assert e_header == g_header
+    for e_row,g_row in zip(e_data,g_data):
+        for e_item,g_item in zip(e_row,g_row):
+            assert e_item == g_item

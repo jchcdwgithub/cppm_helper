@@ -439,3 +439,29 @@ def combine_vlan_tables(vlan_tables):
                 vlans.add(current_vlan)
                 combined_vlan_table['data'].append(row)
     return combined_vlan_table
+
+def reorder_table_based_on_new_header_order(orig_table:list[list[str]], new_headers:list[str]):
+    '''
+    Returns a table in the order outlined in new_headers. If new_headers contain headers not in the
+    original table, fill that column in each row with an empty string.
+    '''
+    orig_headers = orig_table[0]
+    orig_data = orig_table[1]
+    new_data = []
+    orig_index = {}
+    for new_header in new_headers:
+        if new_header in orig_headers:
+            orig_index[new_header] = orig_headers.index(new_header)
+        else:
+            orig_index[new_header] = -1
+    for orig_row in orig_data:
+        new_row = []
+        for new_header in new_headers:
+            new_header_index = orig_index[new_header]
+            if new_header_index == -1:
+                new_row.append('')
+            else:
+                new_row.append(orig_row[new_header_index])
+        new_data.append(new_row)
+    new_table = [new_headers, new_data]
+    return new_table
