@@ -24,6 +24,8 @@ BASE_TABLE_INDICES = {
     'sh_cdp_ne_de' : templates.index('sh_cdp_ne_de.template'),
     'sh_int_status' : templates.index('sh_int_status.template'),
     'sh_run_int' : templates.index('sh_run_int.template'),
+    'ip_dns_server_address' : templates.index('ip_dns_server_address.template'),
+    'ip_dns_domain_name' : templates.index('ip_dns_domain_name.template')
 }
 
 supported_oses = ['aos-s']
@@ -73,8 +75,49 @@ for supported_os in supported_oses:
     systems_data = []
     systems_table = {}
 
+    dns_table = {}
+    dns_all_systems = {}
+    dns_systems_table = {}
+    overview_tables = []
+    overview_first_column = []
+
+    ip_helper_table = {}
+    ip_helper_all_systems = {}
+    ip_helper_systems_table = {}
     for device_name, device in zip(device_names, results):
-        print(f'aggregating show information for {device_name}...')
+        print(f'gathering DNS information for {device_name}...')
+        dns_headers_to_include = ['DNS_IP']
+        dns_table = data_util.create_base_table(device[BASE_TABLE_INDICES['ip_dns_server_address']], dns_headers_to_include,'DNS_IP', dns_all_systems)
+
+        print(f'gathering IP helper address information for {device_name}...')
+        ip_helper_headers_to_include = ['VLAN_ID', 'IP_HELPER_ADDRESS']
+        ip_helper_table = data_util.create_base_table(device[BASE_TABLE_INDICES['sh_run_vlans']], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+
+    dns_systems_table['headers'] = ['DNS_IP']
+    dns_systems_table['name'] = 'DNS'
+    dns_systems_table['data'] = dns_all_systems
+    dns_systems_table_data = data_util.convert_dictionary_to_table_structure(dns_systems_table)
+    dns_systems_table['data'] = dns_systems_table_data
+    
+    overview_first_column.append(dns_systems_table)
+
+    helper_ip_set = set()
+    helper_ips = []
+    for vlan_id, helpers in ip_helper_all_systems.items():
+        if len(helpers['IP_HELPER_ADDRESS']) > 0:
+            for helper_ip in helpers['IP_HELPER_ADDRESS']:
+                if not helper_ip in helper_ip_set:
+                    helper_ip_set.add(helper_ip)
+                    helper_ips.append([helper_ip])
+    ip_helper_systems_table['name'] = 'DHCP'
+    ip_helper_systems_table['data'] = helper_ips
+    ip_helper_systems_table['headers'] = ['IP_HELPER_ADDRESS']
+
+    overview_first_column.append(ip_helper_systems_table)
+
+    overview_tables.append(overview_first_column)
+
+    for device_name, device in zip(device_names, results):
 
         print(f'gathering system information for {device_name}...')
         headers_to_include = ['SYSTEM_NAME', 'SOFTWARE_VERSION', 'SERIAL_NUMBER']        
@@ -92,7 +135,6 @@ for supported_os in supported_oses:
         }
         matched_parameter_index = 1
         data_util.add_new_info_from_other_tables_to_table(system_table, system_outputs, matched_parameter_index)
-        print('done')
         
     systems_table['headers'] = [
         'SERIAL_NUMBER',
@@ -120,7 +162,10 @@ for supported_os in supported_oses:
     systems_table['data'] = reordered_table[1]
     systems_table['headers'] = reordered_table[0] 
     systems_table['name'] = 'system_info'
-    tables.append([[systems_table]])
+    overview_second_column = []
+    overview_second_column.append(systems_table)
+    overview_tables.append(overview_second_column)
+    tables.append(overview_tables)
 
     all_vlans = set()
     for device in results:
