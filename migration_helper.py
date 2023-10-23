@@ -12,6 +12,7 @@ templates = ['sh_int_status.template',
              'run_radius.template', 
              'ip_dns_server_address.template', 
              'ip_dns_domain_name.template', 
+             'snmp_server_host.template',
              'snmp_community.template',
              'sh_system.template',
              'sh_module.template',
@@ -26,6 +27,7 @@ BASE_TABLE_INDICES = {
     'sh_cdp_ne_de' : templates.index('sh_cdp_ne_de.template'),
     'sh_int_status' : templates.index('sh_int_status.template'),
     'sh_run_int' : templates.index('sh_run_int.template'),
+    'snmp_server_host' : templates.index('snmp_server_host.template'),
     'ip_dns_server_address' : templates.index('ip_dns_server_address.template'),
     'ip_dns_domain_name' : templates.index('ip_dns_domain_name.template'),
     'ntp_server_ip' : templates.index('ntp_server_ip.template'),
@@ -86,6 +88,10 @@ for supported_os in supported_oses:
     radius_all_systems = {}
     radius_systems_table = {}
 
+    snmp_table = {}
+    snmp_all_systems = {}
+    snmp_systems_table = {}
+
     for device_name, device in zip(device_names, results):
         print(f'gathering DNS information for {device_name}...')
         dns_headers_to_include = ['DNS_IP']
@@ -102,6 +108,10 @@ for supported_os in supported_oses:
         print(f'gathering RADIUS information for {device_name}...')
         radius_headers_to_include = ['RADIUS_HOST']
         radius_table = data_util.create_base_table(device[BASE_TABLE_INDICES['run_radius']], radius_headers_to_include, 'RADIUS_HOST', radius_all_systems)
+
+        print(f'gathering SNMP information for {device_name}...')
+        snmp_headers_to_include = ['SNMP_SERVER_IP']
+        snmp_table = data_util.create_base_table(device[BASE_TABLE_INDICES['snmp_server_host']], snmp_headers_to_include, 'SNMP_SERVER_IP', snmp_all_systems)
 
     dns_systems_table['headers'] = ['DNS_IP']
     dns_systems_table['name'] = 'DNS'
@@ -137,6 +147,13 @@ for supported_os in supported_oses:
     radius_systems_table_data = data_util.convert_dictionary_to_table_structure(radius_systems_table)
     radius_systems_table['data'] = radius_systems_table_data
     overview_first_column.append(radius_systems_table)
+
+    snmp_systems_table['name'] = 'SNMP'
+    snmp_systems_table['headers'] = ['SNMP_SERVER_IP']
+    snmp_systems_table['data'] = snmp_all_systems
+    snmp_systems_table_data = data_util.convert_dictionary_to_table_structure(snmp_systems_table)
+    snmp_systems_table['data'] = snmp_systems_table_data
+    overview_first_column.append(snmp_systems_table)
 
     overview_tables.append(overview_first_column)
 

@@ -1,4 +1,4 @@
-Value SNMP_IP (\d{1,3}(\.\d{1,3}){3})
+Value SNMP_SERVER_IP (\d{1,3}(\.\d{1,3}){3})
 
 Start
- ^ *snmp-server host ${SNMP_IP}.* -> Record
+ ^ *snmp-server host ${SNMP_SERVER_IP}.* -> Record
