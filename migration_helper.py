@@ -14,7 +14,8 @@ templates = ['sh_int_status.template',
              'ip_dns_domain_name.template', 
              'snmp_community.template',
              'sh_system.template',
-             'sh_module.template']
+             'sh_module.template',
+             'ntp_server_ip.template']
 
 BASE_TABLE_INDICES = {
     'sh_run_vlans' : templates.index('sh_run_vlans.template'),
@@ -25,7 +26,8 @@ BASE_TABLE_INDICES = {
     'sh_int_status' : templates.index('sh_int_status.template'),
     'sh_run_int' : templates.index('sh_run_int.template'),
     'ip_dns_server_address' : templates.index('ip_dns_server_address.template'),
-    'ip_dns_domain_name' : templates.index('ip_dns_domain_name.template')
+    'ip_dns_domain_name' : templates.index('ip_dns_domain_name.template'),
+    'ntp_server_ip' : templates.index('ntp_server_ip.template'),
 }
 
 supported_oses = ['aos-s']
@@ -36,17 +38,6 @@ templates_folder = os.path.join(cwd, 'templates')
 host_index = 1
 for supported_os in supported_oses:
     aos_s_templates_folder = os.path.join(templates_folder, supported_os)
-    templates = ['sh_int_status.template',
-                 'sh_run_int.template',
-                 'sh_lldp_in_re_de.template', 
-                 'sh_cdp_ne_de.template', 
-                 'sh_run_vlans.template',
-                 'run_radius.template', 
-                 'ip_dns_server_address.template', 
-                 'ip_dns_domain_name.template', 
-                 'snmp_community.template',
-                 'sh_system.template',
-                 'sh_module.template']
     results = []
     worksheet_names = []
     tables = []
@@ -84,6 +75,11 @@ for supported_os in supported_oses:
     ip_helper_table = {}
     ip_helper_all_systems = {}
     ip_helper_systems_table = {}
+
+    ntp_ip_table = {}
+    ntp_ip_all_systems = {}
+    ntp_ip_systems_table = {}
+
     for device_name, device in zip(device_names, results):
         print(f'gathering DNS information for {device_name}...')
         dns_headers_to_include = ['DNS_IP']
@@ -92,6 +88,10 @@ for supported_os in supported_oses:
         print(f'gathering IP helper address information for {device_name}...')
         ip_helper_headers_to_include = ['VLAN_ID', 'IP_HELPER_ADDRESS']
         ip_helper_table = data_util.create_base_table(device[BASE_TABLE_INDICES['sh_run_vlans']], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+
+        print(f'gathering NTP information for {device_name}...')
+        ntp_ip_headers_to_include = ['NTP_SERVER_IP']
+        ntp_ip_table = data_util.create_base_table(device[BASE_TABLE_INDICES['ntp_server_ip']], ntp_ip_headers_to_include, 'NTP_SERVER_IP', ntp_ip_all_systems)
 
     dns_systems_table['headers'] = ['DNS_IP']
     dns_systems_table['name'] = 'DNS'
@@ -112,8 +112,14 @@ for supported_os in supported_oses:
     ip_helper_systems_table['name'] = 'DHCP'
     ip_helper_systems_table['data'] = helper_ips
     ip_helper_systems_table['headers'] = ['IP_HELPER_ADDRESS']
-
     overview_first_column.append(ip_helper_systems_table)
+
+    ntp_ip_systems_table['name'] = 'NTP'
+    ntp_ip_systems_table['headers'] = ['NTP_SERVER_IP']
+    ntp_ip_systems_table['data'] = ntp_ip_all_systems
+    ntp_ip_systems_table_data = data_util.convert_dictionary_to_table_structure(ntp_ip_systems_table)
+    ntp_ip_systems_table['data'] = ntp_ip_systems_table_data
+    overview_first_column.append(ntp_ip_systems_table)
 
     overview_tables.append(overview_first_column)
 
