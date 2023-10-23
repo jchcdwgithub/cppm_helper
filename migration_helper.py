@@ -15,7 +15,8 @@ templates = ['sh_int_status.template',
              'snmp_community.template',
              'sh_system.template',
              'sh_module.template',
-             'ntp_server_ip.template']
+             'ntp_server_ip.template',
+             'run_radius.template']
 
 BASE_TABLE_INDICES = {
     'sh_run_vlans' : templates.index('sh_run_vlans.template'),
@@ -28,6 +29,7 @@ BASE_TABLE_INDICES = {
     'ip_dns_server_address' : templates.index('ip_dns_server_address.template'),
     'ip_dns_domain_name' : templates.index('ip_dns_domain_name.template'),
     'ntp_server_ip' : templates.index('ntp_server_ip.template'),
+    'run_radius' : templates.index('run_radius.template'),
 }
 
 supported_oses = ['aos-s']
@@ -80,6 +82,10 @@ for supported_os in supported_oses:
     ntp_ip_all_systems = {}
     ntp_ip_systems_table = {}
 
+    radius_table = {}
+    radius_all_systems = {}
+    radius_systems_table = {}
+
     for device_name, device in zip(device_names, results):
         print(f'gathering DNS information for {device_name}...')
         dns_headers_to_include = ['DNS_IP']
@@ -92,6 +98,10 @@ for supported_os in supported_oses:
         print(f'gathering NTP information for {device_name}...')
         ntp_ip_headers_to_include = ['NTP_SERVER_IP']
         ntp_ip_table = data_util.create_base_table(device[BASE_TABLE_INDICES['ntp_server_ip']], ntp_ip_headers_to_include, 'NTP_SERVER_IP', ntp_ip_all_systems)
+
+        print(f'gathering RADIUS information for {device_name}...')
+        radius_headers_to_include = ['RADIUS_HOST']
+        radius_table = data_util.create_base_table(device[BASE_TABLE_INDICES['run_radius']], radius_headers_to_include, 'RADIUS_HOST', radius_all_systems)
 
     dns_systems_table['headers'] = ['DNS_IP']
     dns_systems_table['name'] = 'DNS'
@@ -120,6 +130,13 @@ for supported_os in supported_oses:
     ntp_ip_systems_table_data = data_util.convert_dictionary_to_table_structure(ntp_ip_systems_table)
     ntp_ip_systems_table['data'] = ntp_ip_systems_table_data
     overview_first_column.append(ntp_ip_systems_table)
+
+    radius_systems_table['name'] = 'RADIUS'
+    radius_systems_table['headers'] = ['RADIUS_HOST']
+    radius_systems_table['data'] = radius_all_systems
+    radius_systems_table_data = data_util.convert_dictionary_to_table_structure(radius_systems_table)
+    radius_systems_table['data'] = radius_systems_table_data
+    overview_first_column.append(radius_systems_table)
 
     overview_tables.append(overview_first_column)
 
