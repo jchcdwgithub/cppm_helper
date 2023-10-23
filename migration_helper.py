@@ -113,12 +113,7 @@ for supported_os in supported_oses:
         snmp_headers_to_include = ['SNMP_SERVER_IP']
         snmp_table = data_util.create_base_table(device[BASE_TABLE_INDICES['snmp_server_host']], snmp_headers_to_include, 'SNMP_SERVER_IP', snmp_all_systems)
 
-    dns_systems_table['headers'] = ['DNS_IP']
-    dns_systems_table['name'] = 'DNS'
-    dns_systems_table['data'] = dns_all_systems
-    dns_systems_table_data = data_util.convert_dictionary_to_table_structure(dns_systems_table)
-    dns_systems_table['data'] = dns_systems_table_data
-    
+    dns_systems_table = data_util.create_excel_printable_table('DNS', dns_all_systems, ['DNS_IP'])
     overview_first_column.append(dns_systems_table)
 
     helper_ip_set = set()
@@ -129,30 +124,17 @@ for supported_os in supported_oses:
                 if not helper_ip in helper_ip_set:
                     helper_ip_set.add(helper_ip)
                     helper_ips.append([helper_ip])
-    ip_helper_systems_table['name'] = 'DHCP'
-    ip_helper_systems_table['data'] = helper_ips
-    ip_helper_systems_table['headers'] = ['IP_HELPER_ADDRESS']
+
+    ip_helper_systems_table = data_util.create_excel_printable_table('DHCP', helper_ips, ['IP_HELPER_ADDRESS'], convert_table=False)
     overview_first_column.append(ip_helper_systems_table)
 
-    ntp_ip_systems_table['name'] = 'NTP'
-    ntp_ip_systems_table['headers'] = ['NTP_SERVER_IP']
-    ntp_ip_systems_table['data'] = ntp_ip_all_systems
-    ntp_ip_systems_table_data = data_util.convert_dictionary_to_table_structure(ntp_ip_systems_table)
-    ntp_ip_systems_table['data'] = ntp_ip_systems_table_data
+    ntp_ip_systems_table = data_util.create_excel_printable_table('NTP', ntp_ip_all_systems, ['NTP_SERVER_IP'])
     overview_first_column.append(ntp_ip_systems_table)
 
-    radius_systems_table['name'] = 'RADIUS'
-    radius_systems_table['headers'] = ['RADIUS_HOST']
-    radius_systems_table['data'] = radius_all_systems
-    radius_systems_table_data = data_util.convert_dictionary_to_table_structure(radius_systems_table)
-    radius_systems_table['data'] = radius_systems_table_data
+    radius_systems_table = data_util.create_excel_printable_table('RADIUS', radius_all_systems, ['RADIUS_HOST'])
     overview_first_column.append(radius_systems_table)
 
-    snmp_systems_table['name'] = 'SNMP'
-    snmp_systems_table['headers'] = ['SNMP_SERVER_IP']
-    snmp_systems_table['data'] = snmp_all_systems
-    snmp_systems_table_data = data_util.convert_dictionary_to_table_structure(snmp_systems_table)
-    snmp_systems_table['data'] = snmp_systems_table_data
+    snmp_systems_table = data_util.create_excel_printable_table('SNMP', snmp_all_systems, ['SNMP_SERVER_IP'])
     overview_first_column.append(snmp_systems_table)
 
     overview_tables.append(overview_first_column)

@@ -167,6 +167,27 @@ def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str]) 
         table.append(current_item)
     return table
 
+def create_excel_printable_table(name:str, data:dict, headers:list[str], convert_table:bool=True) -> dict:
+    '''
+    Return a dictionary of the form: 
+    {
+        'name' : name,
+        'headers' : headers,
+        'data' : [
+        [...]
+        ]
+    }
+    '''
+    table = {
+        'name' : name,
+        'headers' : headers,
+        'data' : data
+    }
+    if convert_table:
+        data_converted_into_table = convert_dictionary_to_table_structure(table)
+        table['data'] = data_converted_into_table
+    return table
+
 def extract_hostname_from_cli_output(cli_output:list[str]) -> str:
     '''
     Given a list of CLI output, attempt to extract the hostname from the output. Note that this information
