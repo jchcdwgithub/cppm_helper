@@ -3,6 +3,31 @@ import excel_util
 import data_util
 import os
 
+
+templates = ['sh_int_status.template',
+             'sh_run_int.template',
+             'sh_lldp_in_re_de.template', 
+             'sh_cdp_ne_de.template', 
+             'sh_run_vlans.template',
+             'run_radius.template', 
+             'ip_dns_server_address.template', 
+             'ip_dns_domain_name.template', 
+             'snmp_community.template',
+             'sh_system.template',
+             'sh_module.template']
+
+BASE_TABLE_INDICES = {
+    'sh_run_vlans' : templates.index('sh_run_vlans.template'),
+    'sh_system' : templates.index('sh_system.template'),
+    'sh_module' : templates.index('sh_module.template'),
+    'sh_lldp_in_re_de' : templates.index('sh_lldp_in_re_de.template'),
+    'sh_cdp_ne_de' : templates.index('sh_cdp_ne_de.template'),
+    'sh_int_status' : templates.index('sh_int_status.template'),
+    'sh_run_int' : templates.index('sh_run_int.template'),
+    'ip_dns_server_address' : templates.index('ip_dns_server_address.template'),
+    'ip_dns_domain_name' : templates.index('ip_dns_domain_name.template')
+}
+
 supported_oses = ['aos-s']
 cwd = os.getcwd()
 device_names = []
@@ -50,30 +75,57 @@ for supported_os in supported_oses:
     systems_data = []
     systems_table = {}
 
+    dns_table = {}
+    dns_all_systems = {}
+    dns_systems_table = {}
+    overview_tables = []
+    overview_first_column = []
+
+    ip_helper_table = {}
+    ip_helper_all_systems = {}
+    ip_helper_systems_table = {}
     for device_name, device in zip(device_names, results):
-        print(f'aggregating show information for {device_name}...')
+        print(f'gathering DNS information for {device_name}...')
+        dns_headers_to_include = ['DNS_IP']
+        dns_table = data_util.create_base_table(device[BASE_TABLE_INDICES['ip_dns_server_address']], dns_headers_to_include,'DNS_IP', dns_all_systems)
+
+        print(f'gathering IP helper address information for {device_name}...')
+        ip_helper_headers_to_include = ['VLAN_ID', 'IP_HELPER_ADDRESS']
+        ip_helper_table = data_util.create_base_table(device[BASE_TABLE_INDICES['sh_run_vlans']], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+
+    dns_systems_table['headers'] = ['DNS_IP']
+    dns_systems_table['name'] = 'DNS'
+    dns_systems_table['data'] = dns_all_systems
+    dns_systems_table_data = data_util.convert_dictionary_to_table_structure(dns_systems_table)
+    dns_systems_table['data'] = dns_systems_table_data
+    
+    overview_first_column.append(dns_systems_table)
+
+    helper_ip_set = set()
+    helper_ips = []
+    for vlan_id, helpers in ip_helper_all_systems.items():
+        if len(helpers['IP_HELPER_ADDRESS']) > 0:
+            for helper_ip in helpers['IP_HELPER_ADDRESS']:
+                if not helper_ip in helper_ip_set:
+                    helper_ip_set.add(helper_ip)
+                    helper_ips.append([helper_ip])
+    ip_helper_systems_table['name'] = 'DHCP'
+    ip_helper_systems_table['data'] = helper_ips
+    ip_helper_systems_table['headers'] = ['IP_HELPER_ADDRESS']
+
+    overview_first_column.append(ip_helper_systems_table)
+
+    overview_tables.append(overview_first_column)
+
+    for device_name, device in zip(device_names, results):
 
         print(f'gathering system information for {device_name}...')
-        current_system = device[9]
-        system_headers = current_system[0]
-        system_data = current_system[1]
         headers_to_include = ['SYSTEM_NAME', 'SOFTWARE_VERSION', 'SERIAL_NUMBER']        
-        for data in system_data:
-            current_system_data = {}
-            for header,attribute in zip(system_headers, data):
-                if header == 'SERIAL_NUMBER':
-                    all_systems[attribute.strip()] = current_system_data
-                    system_name = attribute
-                elif header in headers_to_include:
-                    current_system_data[header] = attribute
-        
-        system_table = {}
-        system_table['headers'] = headers_to_include
-        system_table['data'] = all_systems 
-        
+        system_table = data_util.create_base_table(device[BASE_TABLE_INDICES['sh_system']],headers_to_include,'SERIAL_NUMBER',all_systems)
+
         system_outputs = {}
         system_outputs['sh_module'] = {
-            'parsed_data' : device[10],
+            'parsed_data' : device[BASE_TABLE_INDICES['sh_module']],
             'new_headers' : {
                 'CHASSIS_MODEL' : {
                     'index' : 0,
@@ -81,16 +133,9 @@ for supported_os in supported_oses:
                 },
             }
         }
+        matched_parameter_index = 1
+        data_util.add_new_info_from_other_tables_to_table(system_table, system_outputs, matched_parameter_index)
         
-        for output,output_data in system_outputs.items():
-            output_headers = output_data['parsed_data'][0]
-            output_info = output_data['parsed_data'][1]
-            output_new_headers = output_data['new_headers']
-            data_util.update_new_header_indices(output_headers, output_new_headers)
-            data_util.add_new_headers_to_parsed_data(system_table, output_info, output_new_headers, 1)
-            data_util.fill_data_with_empty_values(system_table, output_new_headers)
-
-
     systems_table['headers'] = [
         'SERIAL_NUMBER',
         'SYSTEM_NAME',
@@ -116,11 +161,15 @@ for supported_os in supported_oses:
     reordered_table = data_util.reorder_table_based_on_new_header_order([systems_table['headers'],systems_table['data']], new_header_order)
     systems_table['data'] = reordered_table[1]
     systems_table['headers'] = reordered_table[0] 
-    tables.append([[systems_table]])
+    systems_table['name'] = 'system_info'
+    overview_second_column = []
+    overview_second_column.append(systems_table)
+    overview_tables.append(overview_second_column)
+    tables.append(overview_tables)
 
     all_vlans = set()
     for device in results:
-        device_vlans = device[4]
+        device_vlans = device[BASE_TABLE_INDICES['sh_run_vlans']]
         device_vlan_headers = device_vlans[0]
         device_vlan_data = device_vlans[1]
         vlan_id_index = device_vlan_headers.index('VLAN_ID')
@@ -130,7 +179,7 @@ for supported_os in supported_oses:
                 all_vlans.add(vlan_id)
 
     for device in results:
-        device_vlans = device[4]
+        device_vlans = device[BASE_TABLE_INDICES['sh_run_vlans']]
         device_vlan_headers = device_vlans[0]
         device_vlan_data = device_vlans[1]
         vlan_id_index = device_vlan_headers.index('VLAN_ID')
@@ -153,25 +202,11 @@ for supported_os in supported_oses:
 
     for device_name, device in zip(device_names, results):
 
-    #create individual device port tables
         print(f'aggregating L2/3 information into tables...')
-        device_vlans = {}
-        sh_run_vlans = device[4]
-        vlan_data = sh_run_vlans[1]
-        vlan_headers = sh_run_vlans[0]
         headers_to_include = ['VLAN_ID', 'VLAN_NAME']
-        for vlan in vlan_data:
-            current_vlan = {}
-            for header,attribute in zip(vlan_headers, vlan):
-                if header == 'VLAN_ID':
-                    device_vlans[attribute] = current_vlan
-                elif header in headers_to_include:
-                    current_vlan[header] = attribute
+        sh_run_vlans = device[4]
+        vlan_table = data_util.create_base_table(sh_run_vlans,headers_to_include,'VLAN_ID')
         converted_ip_addresses = data_util.convert_vlan_ip_subnet_to_slash_notation(sh_run_vlans)
-        vlan_table = {}
-        vlan_table['headers'] = headers_to_include
-        vlan_table['data'] = device_vlans
-        vlan_table['name'] = device_name
         
         vlan_outputs = {}
         vlan_outputs['ip_address_converted'] = {
@@ -183,39 +218,21 @@ for supported_os in supported_oses:
                 }
             }
         }
-                
-        for output,output_data in vlan_outputs.items():
-            output_headers = output_data['parsed_data'][0]
-            output_info = output_data['parsed_data'][1]
-            output_new_headers = output_data['new_headers']
-            data_util.update_new_header_indices(output_headers, output_new_headers)
-            data_util.add_new_headers_to_parsed_data(vlan_table, output_info, output_new_headers, 0)
-            data_util.fill_data_with_empty_values(vlan_table, output_new_headers)
-        
+
+        data_util.add_new_info_from_other_tables_to_table(vlan_table,vlan_outputs)
         data_table = data_util.convert_dictionary_to_table_structure(vlan_table)
         vlan_table['data'] = data_table
+        vlan_table['name'] = device_name 
 
         vlan_tables.append([vlan_table])
 
-        ports = {}
-        sh_run_int_data = device[1]
-        port_data = sh_run_int_data[1]
-        port_headers = sh_run_int_data[0]
-        for port in port_data:
-            current_port = {}
-            for header,attribute in zip(port_headers,port):
-                if header == 'INTERFACE':
-                    ports[attribute] = current_port 
-                else:
-                    current_port[header] = attribute
+        headers = device[1][0]
+        device_data = device[1]
+        port_table = data_util.create_base_table(device_data,headers,'INTERFACE',{})
 
-        port_table = {}
-        port_table['headers'] = port_headers
-        port_table['data'] = ports
-
-        outputs = {}
-        outputs['cdp_neighbor'] = {
-            'parsed_data' : device[3],
+        outputs = {
+            'sh_cdp_ne_de' : {
+            'parsed_data' : device[BASE_TABLE_INDICES['sh_cdp_ne_de']],
             'new_headers' : {
                 'IP_ADDRESS' : {
                     'index' : 0,
@@ -226,34 +243,29 @@ for supported_os in supported_oses:
                     'new_name' : 'NEIGHBOR_PLATFORM'
                 }
             }
-            }
-        outputs['lldp_neighbors'] = {
-            'parsed_data' : device[2],
+            },
+        'lldp_neighbors' : {
+            'parsed_data' : device[BASE_TABLE_INDICES['sh_lldp_in_re_de']],
             'new_headers' : {
                 'SYSTEM_NAME' : {
                     'index' : 0,
                     'new_name' : 'NEIGHBOR_NAME'
                 }
             }   
-        }
-        outputs['sh_int_status'] = {
-            'parsed_data' : device[0],
+        },
+        'sh_int_status' : {
+            'parsed_data' : device[BASE_TABLE_INDICES['sh_int_status']],
             'new_headers' : {
                 h : {
-                    'index' : i,
+                    'index' : 0,
                     'new_name' : h
-                } for i,h in enumerate(device[0][0][2:len(device[0][0])-2], start=2)
+                } for h in device[BASE_TABLE_INDICES['sh_int_status']][0][2:len(device[BASE_TABLE_INDICES['sh_int_status']][0])-2]
             }
         }
+        }
 
-        for output,output_data in outputs.items():
-            output_headers = output_data['parsed_data'][0]
-            output_info = output_data['parsed_data'][1]
-            output_new_headers = output_data['new_headers']
-            data_util.update_new_header_indices(output_headers, output_new_headers)
-            data_util.add_new_headers_to_parsed_data(port_table, output_info, output_new_headers, 0)
-            data_util.fill_data_with_empty_values(port_table, output_new_headers)
-
+        data_util.add_new_info_from_other_tables_to_table(port_table, outputs)
+        
         new_header_order = [
         'INTERFACE',
         'NAME',

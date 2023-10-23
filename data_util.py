@@ -465,3 +465,58 @@ def reorder_table_based_on_new_header_order(orig_table:list[list[str]], new_head
         new_data.append(new_row)
     new_table = [new_headers, new_data]
     return new_table
+
+def create_base_table(base_data:list[list[str]], headers_to_include:list[str], main_key:str, base_table:dict={}):
+    '''
+    The base_data is a list of two lists:
+        headers_list is the first item. A list of strings representing the headers of the table.
+        data_list is a list of lists, each list representing a row of data.
+    The headers_to_include is a subset of the headers from which to build the base table from the data.
+    main_key is a string
+    '''
+    base_headers = base_data[0]
+    base_rows = base_data[1]
+    for row in base_rows:
+        current_data = {}
+        for header,attribute in zip(base_headers, row):
+            if header == main_key:
+                base_table[attribute] = current_data
+            elif header in headers_to_include:
+                current_data[header] = attribute
+    return_table = {}
+    return_table['headers'] = headers_to_include
+    return_table['data'] = base_table
+    return return_table
+
+def add_new_info_from_other_tables_to_table(table:dict, new_outputs:dict,matched_parameter_index:int=0):
+    '''
+    The table is of the type:
+        {
+            'headers' : list[str],
+            'data' : dict[str, str]
+        }
+    The new_outputs is of the type:
+        {
+            NAME : {
+                'parsed_data' : [
+                    list[str],
+                    [
+                        list[str]
+                    ]
+                ],
+                'new_headers' : {
+                    OLD_HEADER_NAME : 
+                        'index' : 0,
+                        'new_name' : NEW_HEADER_NAME`
+                }
+            }
+        }
+    NAME is an arbitrary string separating each table with information to add to the table.
+    '''
+    for _,output_data in new_outputs.items():
+        output_headers = output_data['parsed_data'][0]
+        output_info = output_data['parsed_data'][1]
+        output_new_headers = output_data['new_headers']
+        update_new_header_indices(output_headers, output_new_headers)
+        add_new_headers_to_parsed_data(table, output_info, output_new_headers, matched_parameter_index)
+        fill_data_with_empty_values(table, output_new_headers)
