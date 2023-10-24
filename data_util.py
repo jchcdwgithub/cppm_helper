@@ -167,6 +167,45 @@ def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str]) 
         table.append(current_item)
     return table
 
+def create_outputs_ds(device_info:list[list[str]], parsed_data_to_add:list) -> dict:
+    '''
+    device_info is a list of textFSM extracted parsed data.
+    parsed_data_to_add is a list of dictionaries that are formatted as:
+        {
+            'table_name' : Name of the table to add. Must correspond to the template file with parsed info.,
+            'headers_to_add' : a list of TUPLES (old_header_name, new_header_name),
+            'table_index' : index of table in device_info
+        }
+    Returns:
+        {
+            'table_name' : {
+                'parsed_data' : taken from the device_info list,
+                'new_headers' : {
+                    'old_header_name' : {
+                        'index' : 0,
+                        'new_name' : new_header_name
+                    }...
+                }
+            }
+        }
+    '''
+    outputs = {}
+    if len(parsed_data_to_add) == 0:
+        return outputs
+    for table_to_add in parsed_data_to_add:
+        table_name = table_to_add['table_name']
+        outputs[table_name] = {}
+        table_headers = table_to_add['headers_to_add']
+        table_index = table_to_add['table_index']
+        outputs[table_name]['parsed_data'] = device_info[table_index]
+        for old_header, new_header in table_headers:
+            if not 'new_headers' in outputs[table_name].keys():
+                outputs[table_name]['new_headers'] = {}
+                outputs[table_name]['new_headers'][old_header] = {'index':0, 'new_name':new_header}
+            else:
+                outputs[table_name]['new_headers'][old_header] = {'index':0, 'new_name':new_header}
+        return outputs
+
 def create_excel_printable_table(name:str, data:dict, headers:list[str], convert_table:bool=True) -> dict:
     '''
     Return a dictionary of the form: 

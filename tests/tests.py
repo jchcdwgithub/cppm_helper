@@ -524,3 +524,26 @@ def test_reorder_table_based_on_new_header_order_reorders_correctly_and_adds_ext
     for e_row,g_row in zip(e_data,g_data):
         for e_item,g_item in zip(e_row,g_row):
             assert e_item == g_item
+
+def test_create_outputs_ds_creates_expected_ds():
+    test_data = [
+        ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS', 'SUBNET', 'IP_HELPER_ADDRESS'],
+        [
+            ['1', 'DEFAULT_VLAN', '', '', []],
+            ['2', 'StaffVLAN', '10.200.1.1', '255.255.255.0', []],
+            ['3', 'VLAN3', '10.3.3.3', '255.255.0.0', ['10.10.10.10']]
+        ]
+    ]
+    device_info = [test_data]
+    table_info = {
+        'table_name' : 'test',
+        'table_index' : 0,
+        'headers_to_add' : [('VLAN_ID', 'VLAN'), ('IP_ADDRESS', 'IP')]
+    }
+    generated = data_util.create_outputs_ds(device_info, [table_info])
+    assert 'test' in generated.keys()
+    assert generated['test']['parsed_data'] == test_data
+    assert generated['test']['new_headers']['VLAN_ID']['index'] == 0
+    assert generated['test']['new_headers']['VLAN_ID']['new_name'] == 'VLAN'
+    assert generated['test']['new_headers']['IP_ADDRESS']['index'] == 0
+    assert generated['test']['new_headers']['IP_ADDRESS']['new_name'] == 'IP'
