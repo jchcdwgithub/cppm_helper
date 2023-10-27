@@ -152,7 +152,7 @@ def fill_data_with_empty_values(existing_datastructure:dict[str,str], new_header
                 new_header_name = new_headers[new_header]['new_name']
                 item_info[new_header_name] = ''
 
-def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str]) -> list[list[str]]:
+def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str], match_key:str='') -> list[list[str]]:
     '''
     Converts the dictionary of items into a list of list of items appropriate for the pandas.to_excel method to
     write the information to an excel table.
@@ -162,8 +162,10 @@ def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str]) 
     ds_headers = existing_datastructure['headers']
     for key,item_data in ds_dict_data.items():
         current_item = [key]
-        for header in ds_headers[1:]:
-            current_item.append(item_data[header])
+        if len(ds_headers) > 1:
+            for header in ds_headers:
+                if not header == match_key:
+                    current_item.append(item_data[header])
         table.append(current_item)
     return table
 
@@ -204,7 +206,7 @@ def create_outputs_ds(device_info:list[list[str]], parsed_data_to_add:list) -> d
                 outputs[table_name]['new_headers'][old_header] = {'index':0, 'new_name':new_header}
             else:
                 outputs[table_name]['new_headers'][old_header] = {'index':0, 'new_name':new_header}
-        return outputs
+    return outputs
 
 def create_excel_printable_table(name:str, data:dict, headers:list[str], convert_table:bool=True) -> dict:
     '''
@@ -526,13 +528,14 @@ def reorder_table_based_on_new_header_order(orig_table:list[list[str]], new_head
     new_table = [new_headers, new_data]
     return new_table
 
-def create_base_table(base_data:list[list[str]], headers_to_include:list[str], main_key:str, base_table:dict={}):
+def create_base_table(base_data:list[list[str]], headers_to_include:list[str], main_key:str, base_table:dict):
     '''
     The base_data is a list of two lists:
         headers_list is the first item. A list of strings representing the headers of the table.
         data_list is a list of lists, each list representing a row of data.
     The headers_to_include is a subset of the headers from which to build the base table from the data.
     main_key is a string
+    base_table is a dictionary where the base_table data will be included.
     '''
     base_headers = base_data[0]
     base_rows = base_data[1]
@@ -580,3 +583,38 @@ def add_new_info_from_other_tables_to_table(table:dict, new_outputs:dict,matched
         update_new_header_indices(output_headers, output_new_headers)
         add_new_headers_to_parsed_data(table, output_info, output_new_headers, matched_parameter_index)
         fill_data_with_empty_values(table, output_new_headers)
+
+def create_column_ds(col_tables:list[dict], ds:list[list[str]]) -> list[list[str]]:
+    '''
+    Creates excel printable tables encoded in col_tables list.
+    ds is a list of parsed information presented in tables that textFSM produces.
+    '''
+    column = []
+    for table in col_tables:
+        base_table_index = table['base_table']['base_table_index']
+        base_table_headers = table['base_table']['headers_to_include']
+        base_table_key = table['base_table']['key']
+        base_table = create_base_table(ds[base_table_index], base_table_headers, base_table_key, {})
+        if 'parsed_info_to_add' in table:
+            parsed_info_to_add = table['parsed_info_to_add']
+            if len(parsed_info_to_add) > 0:
+                outputs = create_outputs_ds(ds, parsed_info_to_add)
+                matched_parameter_index = 0
+                if 'matched_parameter_index' in table:
+                    matched_parameter_index = table['matched_parameter_index']
+                add_new_info_from_other_tables_to_table(base_table, outputs, matched_parameter_index)
+        table_name = table['table_name']
+        table_final_headers = table['final_headers']
+        current_headers = base_table['headers']
+        convert_table = table['convert_table']
+        if convert_table:
+            converted_table = convert_dictionary_to_table_structure(base_table, base_table_key)
+            base_table['data'] = converted_table
+            convert_table = False
+        if current_headers != table_final_headers:
+            base_table = reorder_table_based_on_new_header_order([current_headers,base_table['data']], table_final_headers)[1]
+        else:
+            base_table = base_table['data']
+        printable_table = create_excel_printable_table(table_name, base_table, table_final_headers, convert_table)
+        column.append(printable_table)
+    return column
