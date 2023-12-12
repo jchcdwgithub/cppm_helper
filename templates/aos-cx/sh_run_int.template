@@ -2,7 +2,6 @@ Value Required INTERFACE (\d/\d/\d{1,3}|lag \d+)
 Value NAME (.+)
 Value TAGGED_VLAN (\d{1,4}(,\d{1,4})*)
 Value Required UNTAGGED_VLAN (\d{1,4})
-Value TRUNK (trk\d+.*)
 
 Start
  ^interface ${INTERFACE}

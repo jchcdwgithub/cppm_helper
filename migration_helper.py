@@ -2,7 +2,41 @@ import file_util
 import excel_util
 import data_util
 import os
+import copy
+from data_structures import os_tables,os_templates
 
+os_templates = {
+    'aos-s' : [
+        'sh_int_status.template',
+        'sh_run_int.template',
+        'sh_lldp_in_re_de.template',
+        'sh_cdp_ne_de.template',
+        'sh_run_vlans.template',
+        'run_radius.template',
+        'ip_dns_server_address.template',
+        'ip_dns_domain_name.template',
+        'snmp_server_host.template',
+        'snmp_community.template',
+        'sh_system.template',
+        'sh_module.template',
+        'ntp_server_ip.template'
+    ],
+    'aos-cx' : [
+        'sh_cdp_ne_de.template',
+        'sh_lldp_in_re_de.template',
+        'sh_module.template',
+        'sh_run_int.template',
+        'sh_run_vlans.template',
+        'sh_system.template',
+        'run_radius.template',
+        'snmp_server_host.template',
+        'snmp_community.template',
+        'ip_dns_server_address.template',
+        'ip_dns_domain_name.template',
+        'ntp_server_ip.template'
+        'sh_int_status.template',
+    ]
+}
 
 templates = ['sh_int_status.template',
              'sh_run_int.template',
@@ -17,7 +51,7 @@ templates = ['sh_int_status.template',
              'sh_system.template',
              'sh_module.template',
              'ntp_server_ip.template',
-             'run_radius.template']
+             ]
 
 BASE_TABLE_INDICES = {
     'sh_run_vlans' : templates.index('sh_run_vlans.template'),
@@ -51,7 +85,7 @@ workbook = {
     ],
 }
 
-supported_oses = ['aos-s']
+supported_oses = ['aos-cx']
 cwd = os.getcwd()
 device_names = []
 device_names_populated = False
@@ -111,23 +145,23 @@ for supported_os in supported_oses:
     for device_name, device in zip(device_names, results):
         print(f'gathering DNS information for {device_name}...')
         dns_headers_to_include = ['DNS_IP']
-        dns_table = data_util.create_base_table(device[BASE_TABLE_INDICES['ip_dns_server_address']], dns_headers_to_include,'DNS_IP', dns_all_systems)
+        dns_table = data_util.create_base_table(device[os_templates[supported_os].index('ip_dns_server_address.template')], dns_headers_to_include,'DNS_IP', dns_all_systems)
 
         print(f'gathering IP helper address information for {device_name}...')
         ip_helper_headers_to_include = ['VLAN_ID', 'IP_HELPER_ADDRESS']
-        ip_helper_table = data_util.create_base_table(device[BASE_TABLE_INDICES['sh_run_vlans']], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+        ip_helper_table = data_util.create_base_table(device[os_templates[supported_os].index('sh_run_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
 
         print(f'gathering NTP information for {device_name}...')
         ntp_ip_headers_to_include = ['NTP_SERVER_IP']
-        ntp_ip_table = data_util.create_base_table(device[BASE_TABLE_INDICES['ntp_server_ip']], ntp_ip_headers_to_include, 'NTP_SERVER_IP', ntp_ip_all_systems)
+        ntp_ip_table = data_util.create_base_table(device[os_templates[supported_os].index('ntp_server_ip.template')], ntp_ip_headers_to_include, 'NTP_SERVER_IP', ntp_ip_all_systems)
 
         print(f'gathering RADIUS information for {device_name}...')
         radius_headers_to_include = ['RADIUS_HOST']
-        radius_table = data_util.create_base_table(device[BASE_TABLE_INDICES['run_radius']], radius_headers_to_include, 'RADIUS_HOST', radius_all_systems)
+        radius_table = data_util.create_base_table(device[os_templates[supported_os].index('run_radius.template')], radius_headers_to_include, 'RADIUS_HOST', radius_all_systems)
 
         print(f'gathering SNMP information for {device_name}...')
         snmp_headers_to_include = ['SNMP_SERVER_IP']
-        snmp_table = data_util.create_base_table(device[BASE_TABLE_INDICES['snmp_server_host']], snmp_headers_to_include, 'SNMP_SERVER_IP', snmp_all_systems)
+        snmp_table = data_util.create_base_table(device[os_templates[supported_os].index('snmp_server_host.template')], snmp_headers_to_include, 'SNMP_SERVER_IP', snmp_all_systems)
 
     dns_systems_table = data_util.create_excel_printable_table('DNS', dns_all_systems, ['DNS_IP'])
     overview_first_column.append(dns_systems_table)
@@ -231,56 +265,9 @@ for supported_os in supported_oses:
 
         #sh_run_vlans = device[4]
         #converted_ip_addresses = data_util.convert_vlan_ip_subnet_to_slash_notation(sh_run_vlans)
+        device_port_table = copy.deepcopy(os_tables[supported_os]['device_port_table'])
+        device_port_table[0]['table_name'] = device_name
 
-        device_port_table = [
-            {
-                'table_name' : device_name,
-                'base_table' : {
-                    'base_table_index' : BASE_TABLE_INDICES['sh_run_int'],
-                    'headers_to_include' : ['INTERFACE', 'NAME', 'UNTAGGED_VLAN', 'TAGGED_VLAN'],
-                    'key': 'INTERFACE'
-                },
-                'parsed_info_to_add': [
-                    {
-                        'table_name' : 'sh_cdp_ne_de',
-                        'table_index' : BASE_TABLE_INDICES['sh_cdp_ne_de'],
-                        'headers_to_add' : [
-                            ('IP_ADDRESS', 'NEIGHBOR_IP'),
-                            ('PLATFORM', 'NEIGHBOR_PLATFORM')
-                        ]
-                    },
-                    {
-                        'table_name' : 'lldp_neighbors',
-                        'table_index' : BASE_TABLE_INDICES['sh_lldp_in_re_de'],
-                        'headers_to_add' : [
-                            ('SYSTEM_NAME', 'NEIGHBOR_NAME')
-                        ]
-                    },
-                    {
-                        'table_name' : 'sh_int_status',
-                        'table_index' : BASE_TABLE_INDICES['sh_int_status'],
-                        'headers_to_add' : [
-                            (h, h) for h in device[BASE_TABLE_INDICES['sh_int_status']][0][2:len(device[BASE_TABLE_INDICES['sh_int_status']][0])-2]
-                        ]
-                    }
-                ],
-                'final_headers' : [
-                            'INTERFACE',
-                            'NAME',
-                            'NEIGHBOR_IP',
-                            'NEIGHBOR_NAME',
-                            'NEIGHBOR_PLATFORM',
-                            'STATUS',
-                            'CONFIG_MODE',
-                            'SPEED',
-                            'TYPE',
-                            'TRUNK',
-                            'TAGGED_VLAN',
-                            'UNTAGGED_VLAN'
-                            ],
-                'convert_table' : True
-            }
-        ]
         port_table = data_util.create_column_ds(device_port_table, device)
         #if device_name == '':
         #    port_table['name'] = f'host{host_index}'
