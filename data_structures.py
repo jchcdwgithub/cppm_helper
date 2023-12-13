@@ -15,10 +15,12 @@ os_templates = {
         'ntp_server_ip.template',
     ],
     'aos-cx' : [
+        'ntp_server_ip.template',
         'sh_cdp_ne_de.template',
         'sh_lldp_in_re_de.template',
         'sh_module.template',
         'sh_run_int.template',
+        'sh_run_int_lag.template',
         'sh_run_vlans.template',
         'sh_system.template',
         'run_radius.template',
@@ -26,7 +28,6 @@ os_templates = {
         'snmp_community.template',
         'ip_dns_server_address.template',
         'ip_dns_domain_name.template',
-        'ntp_server_ip.template',
         'sh_int_status.template',
     ]
 }
@@ -89,7 +90,44 @@ os_tables = {
                             ],
                 'convert_table' : True
             }
-        ]
+        ],
+        'L2/L3' : [
+            [
+                {
+                    'table_name' : '',
+                    'base_table' : {
+                        'base_table_index' : os_templates['aos-s'].index('sh_run_vlans.template'),
+                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                        'key' : 'VLAN_ID'
+                    },
+                    'final_headers' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                    'convert_table' : True
+                }
+            ]
+        ],
+        'system_table' :
+        [
+            {
+                'table_name' : 'system_info',
+                'base_table' : {
+                    'base_table_index' : os_templates['aos-s'].index('sh_system.template'),
+                    'headers_to_include' : ['SYSTEM_NAME', 'SOFTWARE_VERSION', 'SERIAL_NUMBER'],
+                    'key' : 'SERIAL_NUMBER'
+                },
+                'parsed_info_to_add' : [
+                    {
+                        'table_name' : 'sh_module',
+                        'table_index' : os_templates['aos-s'].index('sh_module.template'),
+                        'headers_to_add' : [
+                            ('CHASSIS_MODEL', 'CHASSIS_MODEL')
+                        ],
+                    }
+                ],
+                'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'CHASSIS_MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
+                'convert_table' : True,
+                'matched_parameter_index' : 1
+            }
+        ],
     },
     'aos-cx' : {
         'device_port_table' :
@@ -141,6 +179,43 @@ os_tables = {
                 ],
                 'convert_table' : True
             }
-        ]
+        ],
+        'L2/L3' : [
+            [
+                {
+                    'table_name' : '',
+                    'base_table' : {
+                        'base_table_index' : os_templates['aos-cx'].index('sh_run_vlans.template'),
+                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                        'key' : 'VLAN_ID'
+                    },
+                    'final_headers' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                    'convert_table' : True
+                }
+            ]
+        ],
+        'system_table' :
+        [
+            {
+                'table_name' : 'system_info',
+                'base_table' : {
+                    'base_table_index' : os_templates['aos-cx'].index('sh_system.template'),
+                    'headers_to_include' : ['SYSTEM_NAME', 'SOFTWARE_VERSION', 'SERIAL_NUMBER'],
+                    'key' : 'SERIAL_NUMBER'
+                },
+                'parsed_info_to_add' : [
+                    {
+                        'table_name' : 'sh_module',
+                        'table_index' : os_templates['aos-cx'].index('sh_module.template'),
+                        'headers_to_add' : [
+                            ('CHASSIS_MODEL', 'CHASSIS_MODEL')
+                        ],
+                    }
+                ],
+                'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'CHASSIS_MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
+                'convert_table' : True,
+                'matched_parameter_index' : 1
+            }
+        ],
     },
 }

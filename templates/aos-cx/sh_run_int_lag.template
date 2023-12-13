@@ -1,0 +1,9 @@
+Value Required INTERFACE (\d/\d/\d{1,3})
+Value NAME (.+)
+Value Required LAG (\d+)
+
+Start
+ ^interface ${INTERFACE}
+ ^ *description ${NAME} 
+ ^ *lag ${LAG}
+ ^ *exit -> Record
