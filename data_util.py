@@ -168,6 +168,8 @@ def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str], 
                     current_item.append(item_data[header])
                 else:
                     current_item.append(key)
+        else:
+            current_item.append(key)
         table.append(current_item)
     return table
 
@@ -510,26 +512,22 @@ def merge_tables_into_one_table(tables:list[list[str]]) -> list[list[str]]:
     the merged table.
     '''
     merged_table = []
-    merged_table_headers = []
-    longest_headers = []
-    longest = 0
+    all_table_headers = []
     for table in tables:
         table_headers = table[0]
-        if len(table_headers) > longest:
-            longest = len(table_headers)
-            longest_headers = table_headers
-    for header in longest_headers:
-        merged_table_headers.append(header)
+        for header in table_headers:
+            if not header in all_table_headers:
+                all_table_headers.append(header)
     for table in tables:
         table_contents = table[1]
         table_headers = table[0]
         for row in table_contents:
-            new_row = ['' for header in merged_table_headers]
+            new_row = ['' for _ in all_table_headers]
             for header,item in zip(table_headers,row):
-                item_index = merged_table_headers.index(header)
+                item_index = all_table_headers.index(header)
                 new_row[item_index] = item
             merged_table.append(new_row)
-    return (merged_table_headers, merged_table)    
+    return (all_table_headers, merged_table)    
 
 def reorder_table_based_on_new_header_order(orig_table:list[list[str]], new_headers:list[str]):
     '''

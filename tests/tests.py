@@ -547,3 +547,28 @@ def test_create_outputs_ds_creates_expected_ds():
     assert generated['test']['new_headers']['VLAN_ID']['new_name'] == 'VLAN'
     assert generated['test']['new_headers']['IP_ADDRESS']['index'] == 0
     assert generated['test']['new_headers']['IP_ADDRESS']['new_name'] == 'IP'
+
+def test_merge_tables_into_one_returns_a_merged_table_from_two_tables():
+    table1 = (
+        ['header1', 'header2', 'header3'],
+        [
+            ['item1', 'item2', 'item3']
+        ]
+    )
+    table2 = (
+        ['header1', 'header2'],
+        [
+            ['item4', 'item5']
+        ]
+    )
+    tables = [table1, table2]
+    expected = (
+        ['header1', 'header2', 'header3'],
+        [
+            ['item1', 'item2', 'item3'],
+            ['item4', 'item5', '']
+        ]
+    )
+    generated = data_util.merge_tables_into_one_table(tables)
+    assert expected[0] == generated[0]
+    assert expected[1] == expected[1]

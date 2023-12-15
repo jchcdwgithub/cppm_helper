@@ -1,12 +1,12 @@
 Value Required INTERFACE (\d/\d/\d{1,3}|lag \d{1,4}|vlan \d{1,4})
 Value NAME (.+)
 Value TAGGED_VLAN (\d{1,4}(,\d{1,4})*)
-Value Required UNTAGGED_VLAN (\d{1,4})
+Value Required NATIVE_VLAN (\d{1,4})
 
 Start
  ^interface ${INTERFACE}
  ^ *description ${NAME} 
- ^ *vlan trunk native ${UNTAGGED_VLAN}
- ^ *vlan access ${UNTAGGED_VLAN}
+ ^ *vlan trunk native ${NATIVE_VLAN}
+ ^ *vlan access ${NATIVE_VLAN}
  ^ *vlan trunk allowed +${TAGGED_VLAN}
  ^ *exit -> Record

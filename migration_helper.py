@@ -5,7 +5,7 @@ import os
 import copy
 import data_structures
 
-supported_oses = ['aos-cx','aos-s']
+supported_oses = ['aos-s','aos-cx']
 cwd = os.getcwd()
 templates_folder = os.path.join(cwd, 'templates')
 host_index = 1
@@ -61,7 +61,7 @@ for supported_os in supported_oses:
     snmp_table = {}
     snmp_all_systems = {}
     snmp_systems_table = {}
-
+    
     for device_name, device in zip(device_names, results):
         print(f'gathering DNS information for {device_name}...')
         dns_headers_to_include = ['DNS_IP']
@@ -163,6 +163,13 @@ for supported_os in supported_oses:
         current_table = data_util.create_column_ds(data_structures.os_tables[supported_os]['L2/L3'][0], device)
         current_table[0]['name'] = device_name
         vlan_tables.append(current_table)
+
+        if supported_os == 'aos-cx':
+            sh_run_int_index = data_structures.os_templates[supported_os].index('sh_run_int.template')
+            sh_int_lag_table = device[data_structures.os_templates[supported_os].index('sh_run_int_lag.template')]
+            sh_int_table = device[data_structures.os_templates[supported_os].index('sh_run_int.template')]
+            merged_table = data_util.merge_tables_into_one_table([sh_int_lag_table, sh_int_table])
+            device[sh_run_int_index] = merged_table
 
         device_port_table = copy.deepcopy(data_structures.os_tables[supported_os]['device_port_table'])
         device_port_table[0]['table_name'] = device_name

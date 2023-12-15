@@ -13,6 +13,7 @@ os_templates = {
         'sh_system.template',
         'sh_module.template',
         'ntp_server_ip.template',
+        'sh_trunks.template',
     ],
     'aos-cx' : [
         'ntp_server_ip.template',
@@ -63,14 +64,18 @@ os_tables = {
                         'table_name' : 'sh_int_status',
                         'table_index' : os_templates['aos-s'].index('sh_int_status.template'),
                         'headers_to_add' : [
-                            ('PORT', 'PORT'),
-                            ('NAME', 'NAME'),
                             ('STATUS', 'STATUS'),
                             ('CONFIG_MODE', 'CONFIG_MODE'),
                             ('SPEED', 'SPEED'),
                             ('TYPE', 'TYPE'),
-                            ('TAGGED', 'TAGGED'),
-                            ('UNTAGGED', 'UNTAGGED')
+                        ]
+                    },
+                    {
+                        'table_name' : 'sh_trunks',
+                        'table_index' : os_templates['aos-s'].index('sh_trunks.template'),
+                        'headers_to_add' : [
+                            ('GROUP', 'TRUNK'),
+                            ('LACP', 'LACP')
                         ]
                     }
                 ],
@@ -85,6 +90,7 @@ os_tables = {
                             'SPEED',
                             'TYPE',
                             'TRUNK',
+                            'LACP',
                             'TAGGED_VLAN',
                             'UNTAGGED_VLAN'
                             ],
@@ -136,22 +142,16 @@ os_tables = {
                 'table_name' : '',
                 'base_table' : {
                     'base_table_index' : os_templates['aos-cx'].index('sh_run_int.template'),
-                    'headers_to_include' : ['INTERFACE', 'NAME', 'UNTAGGED_VLAN', 'TAGGED_VLAN'],
+                    'headers_to_include' : ['INTERFACE', 'NAME', 'NATIVE_VLAN', 'TAGGED_VLAN'],
                     'key': 'INTERFACE'
                 },
                 'parsed_info_to_add': [
                     {
-                        'table_name' : 'sh_cdp_ne_de',
-                        'table_index' : os_templates['aos-cx'].index('sh_cdp_ne_de.template'),
-                        'headers_to_add' : [
-                            ('PLATFORM', 'NEIGHBOR_PLATFORM')
-                        ]
-                    },
-                    {
                         'table_name' : 'lldp_neighbors',
                         'table_index' : os_templates['aos-cx'].index('sh_lldp_in_re_de.template'),
                         'headers_to_add' : [
-                            ('SYSTEM_NAME', 'NEIGHBOR_NAME')
+                            ('SYSTEM_NAME', 'NEIGHBOR_NAME'),
+                            ('SYSTEM_DESCRIPTION', 'NEIGHBOR_DESCRIPTION')
                         ]
                     },
                     {
@@ -169,7 +169,7 @@ os_tables = {
                     'INTERFACE',
                     'NAME',
                     'NEIGHBOR_NAME',
-                    'NEIGHBOR_PLATFORM',
+                    'NEIGHBOR_DESCRIPTION',
                     'STATUS',
                     'CONFIG_MODE',
                     'SPEED',
