@@ -6,6 +6,7 @@ sys.path.append(parent)
 import data_util
 import excel_util
 import file_util
+import data_structures
 import pytest
 
 def test_extract_mac_oui_extracts_half_of_colon_separated_mac():
@@ -572,3 +573,19 @@ def test_merge_tables_into_one_returns_a_merged_table_from_two_tables():
     generated = data_util.merge_tables_into_one_table(tables)
     assert expected[0] == generated[0]
     assert expected[1] == expected[1]
+
+def test_process_mgmt_int_information_adds_int_vlan_info_when_vlan_id_is_given():
+    current_device_info = [
+        {
+            'headers' : [
+                'MGMT_IP',
+                'MGMT_SOURCE'
+            ],
+        }
+    ]
+    new_row = ['','']
+    device = [('', '') for _ in data_structures.os_templates['aos-cx']]
+    device[data_structures.os_templates['aos-cx'].index('sh_run_vlans.template')] = (['VLAN_ID', 'IP_ADDRESS'], [['33', '10.1.1.33/24']])
+    data_util.process_mgmt_int_information('vlan 33', 'aos-cx', current_device_info,device,new_row)
+    assert new_row[0] == '10.1.1.33/24'
+    assert new_row[1] == 'VLAN 33'

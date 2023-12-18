@@ -20,6 +20,7 @@ os_templates = {
         'sh_cdp_ne_de.template',
         'sh_lldp_in_re_de.template',
         'sh_module.template',
+        'sh_run_int_vlans.template',
         'sh_run_int.template',
         'sh_run_int_lag.template',
         'sh_run_vlans.template',
@@ -141,8 +142,8 @@ os_tables = {
             {
                 'table_name' : '',
                 'base_table' : {
-                    'base_table_index' : os_templates['aos-cx'].index('sh_run_int.template'),
-                    'headers_to_include' : ['INTERFACE', 'NAME', 'NATIVE_VLAN', 'TAGGED_VLAN'],
+                    'base_table_index' : os_templates['aos-cx'].index('sh_int_status.template'),
+                    'headers_to_include' : ['INTERFACE', 'STATUS', 'CONFIG_MODE', 'SPEED', 'TYPE'],
                     'key': 'INTERFACE'
                 },
                 'parsed_info_to_add': [
@@ -155,13 +156,19 @@ os_tables = {
                         ]
                     },
                     {
-                        'table_name' : 'sh_int_status',
-                        'table_index' : os_templates['aos-cx'].index('sh_int_status.template'),
+                        'table_name' : 'sh_run_int',
+                        'table_index' : os_templates['aos-cx'].index('sh_run_int.template'),
                         'headers_to_add' : [
-                            ('STATUS', 'STATUS'),
-                            ('CONFIG_MODE', 'CONFIG_MODE'),
-                            ('SPEED', 'SPEED'),
-                            ('TYPE', 'TYPE'),
+                            ('NATIVE_VLAN', 'NATIVE_VLAN'),
+                            ('TAGGED_VLAN', 'TAGGED_VLAN'),
+                            ('NAME', 'NAME'),
+                        ]
+                    },
+                    {
+                        'table_name' : 'sh_run_int_lag.template',
+                        'table_index' : os_templates['aos-cx'].index('sh_run_int_lag.template'),
+                        'headers_to_add' : [
+                            ('LAG', 'LAG')
                         ]
                     }
                 ],
@@ -174,6 +181,7 @@ os_tables = {
                     'CONFIG_MODE',
                     'SPEED',
                     'TYPE',
+                    'LAG',
                     'NATIVE_VLAN',
                     'TAGGED_VLAN'
                 ],
@@ -186,9 +194,18 @@ os_tables = {
                     'table_name' : '',
                     'base_table' : {
                         'base_table_index' : os_templates['aos-cx'].index('sh_run_vlans.template'),
-                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME'],
                         'key' : 'VLAN_ID'
                     },
+                    'parsed_info_to_add' : [
+                        {
+                            'table_name' : 'sh_run_int_vlans',
+                            'table_index' : os_templates['aos-cx'].index('sh_run_int_vlans.template'),
+                            'headers_to_add' : [
+                                ('IP_ADDRESS', 'IP_ADDRESS')
+                            ]
+                        }
+                    ],
                     'final_headers' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
                     'convert_table' : True
                 }
@@ -218,4 +235,57 @@ os_tables = {
             }
         ],
     },
+}
+
+show_commands = {
+    'aos-s' : [
+        'show run',
+        'show cdp ne de',
+        'show cdp ne',
+        'show lldp in re de',
+        'show inter status',
+        'show system',
+        'show module',
+        'show mac-address',
+        'show arp',
+        'show trunks',
+        'show lacp',
+        'show ip route',
+        'show power-over-ethernet br',
+        'show spanning-tree',
+        'show spanning-tree config',
+        'show spanning-tree inconsistent-ports',
+        'show flash',
+        'show vlans',
+        'show name',
+        'show inter br',
+        'show version',
+    ],
+    'aos-cx' : [
+        'show run',
+        'show version',
+        'show lldp ne',
+        'show lldp ne de',
+        'show mac-address',
+        'show arp',
+        'show int br',
+        'show lacp aggregates',
+        'show ip route',
+        'show ip route all-vrfs',
+        'show ip ospf',
+        'show ip ospf routes',
+        'show ip ospf neighbors',
+        'show ip ospf neighbors detail',
+        'show ip ospf statistics',
+        'show spanning-tree',
+        'show spanning-tree detail',
+        'show spanning-tree inconsistent-ports',
+        'show spanning-tree summary root',
+        'show power-over-ethernet',
+        'show power-over-ethernet br',
+        'show system',
+        'show module',
+        'show cdp ne',
+        'show vlan',
+    ]
 }

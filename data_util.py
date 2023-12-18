@@ -1,5 +1,6 @@
 import os
 import re
+import data_structures
 
 def extract_oui(mac:str) -> str:
     dividers = [':','-','.']
@@ -128,16 +129,15 @@ def add_new_headers_to_parsed_data(existing_datastructure:dict[str,str],parsed_d
     for new_header in new_headers:
         new_header_name = new_headers[new_header]['new_name']
         existing_datastructure['headers'].append(new_header_name)
-    try: 
-        for item in parsed_data_info:
-            item_name = item[matched_parameter_index]
-            corresponding_item = existing_datastructure['data'][item_name]
+    for item in parsed_data_info:
+        item_name = item[matched_parameter_index]
+        if item_name in existing_datastructure['data']:
             for new_header in new_headers:
                 new_header_name = new_headers[new_header]['new_name']
                 header_index = new_headers[new_header]['index']
-                corresponding_item[new_header_name] = item[header_index]
-    except Exception as e:
-        print(e)
+                existing_datastructure['data'][item_name][new_header_name] = item[header_index]
+        else:
+            print(f'Could not find {item_name} in original table, skipping {item_name}...')
     
 def fill_data_with_empty_values(existing_datastructure:dict[str,str], new_headers:dict[str,str]):
     '''
@@ -645,3 +645,36 @@ def create_column_ds(col_tables:list[dict], ds:list[list[str]]) -> list[list[str
         printable_table = create_excel_printable_table(table_name, base_table, table_final_headers, convert_table)
         column.append(printable_table)
     return column
+
+def process_mgmt_int_information(management_int:str, supported_os:str, current_device_info, device, new_row):
+    '''
+    Adds mgmt information to the systems in the overview systems tab.
+    params:
+        management_int: A string that indicates either the vlan or interface of the mgmt interface
+        supported_os: The OS that the device belongs to.
+        current_device_info: The table with system information for the device
+        device: A list of tuples with the headers and parsed information for a device.
+    '''
+    if supported_os == 'aos-cx':
+        int_source = ''
+        found_vlan = False
+        if 'vlan' in management_int:
+            int_source = management_int.split(' ')[-1]
+            int_vlan_table = device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')]
+            vlan_table_headers = int_vlan_table[0]
+            vlan_table_data = int_vlan_table[1]
+            for data_row in vlan_table_data:
+                vlan_id_index = vlan_table_headers.index('VLAN_ID')
+                if data_row[vlan_id_index] == int_source:
+                    mgmt_ip_index = current_device_info[0]['headers'].index('MGMT_IP')
+                    mgmt_source_index = current_device_info[0]['headers'].index('MGMT_SOURCE')
+                    vlan_ip_index = vlan_table_headers.index('IP_ADDRESS')
+                    new_row[mgmt_ip_index] = data_row[vlan_ip_index]
+                    new_row[mgmt_source_index] = f'VLAN {int_source}'
+                    found_vlan = True
+                    break
+            if not found_vlan:
+                print('management vlan information not found in vlan table, skipping mgmt interface information processing...')
+        else:
+            int_source = management_int
+
