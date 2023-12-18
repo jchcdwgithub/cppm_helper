@@ -585,7 +585,7 @@ def test_process_mgmt_int_information_adds_int_vlan_info_when_vlan_id_is_given()
     ]
     new_row = ['','']
     device = [('', '') for _ in data_structures.os_templates['aos-cx']]
-    device[data_structures.os_templates['aos-cx'].index('sh_run_vlans.template')] = (['VLAN_ID', 'IP_ADDRESS'], [['33', '10.1.1.33/24']])
+    device[data_structures.os_templates['aos-cx'].index('sh_run_int_vlans.template')] = (['VLAN_ID', 'IP_ADDRESS'], [['33', '10.1.1.33/24']])
     data_util.process_mgmt_int_information('vlan 33', 'aos-cx', current_device_info,device,new_row)
     assert new_row[0] == '10.1.1.33/24'
     assert new_row[1] == 'VLAN 33'
