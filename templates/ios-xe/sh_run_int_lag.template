@@ -1,0 +1,7 @@
+Value Required INTERFACE (.+bitEthernet\d/\d/\d{1,2})
+Value CHANNEL_GROUP (\d{1,4})
+Value LAG (active|passive|desirable|auto|on)
+
+Start
+ ^ *interface ${INTERFACE}
+ ^ *channel-group ${CHANNEL_GROUP} mode ${LAG} -> Record

@@ -1,0 +1,10 @@
+Value IP_ADDRESS (\d{1,3}(\.\d{1,3}){3})
+Value Required DEVICE_ID (.+)
+Value PLATFORM (.+)
+Value INTERFACE (.+Ethernet\d/\d/\d{1,2})
+
+Start
+ ^ *Device ID: +${DEVICE_ID}
+ ^ *IP address: +${IP_ADDRESS}
+ ^ *Platform: +${PLATFORM},.*
+ ^ *Interface: +${INTERFACE},.* -> Record

@@ -31,6 +31,20 @@ os_templates = {
         'ip_dns_server_address.template',
         'ip_dns_domain_name.template',
         'sh_int_status.template',
+    ],
+    'ios-xe' : [
+        'sh_cdp_ne_de.template',
+        'sh_int_desc.template',
+        'sh_int_stats.template',
+        'sh_etherchannel_sum.template',
+        'sh_modules.template',
+        'sh_run_vlans.template',
+        'sh_run_int.template',
+        'sh_run_int_lag.template',
+        'sh_run_int_vlan.template',
+        'sh_run_dns.template',
+        'sh_run_domain_name.template',
+        'sh_run_int_lo.template',
     ]
 }
 

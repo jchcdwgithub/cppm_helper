@@ -1,0 +1,7 @@
+Value INTERFACE (Vl\d{1,4}|[a-zA-Z]{2}\d/\d/\d{1,2})
+Value STATUS (admin down|up|down)
+Value PROTOCOL (up|down)
+Value DESCRIPTION (.*)
+
+Start
+ ^ *${INTERFACE} +${STATUS} +${PROTOCOL} +${DESCRIPTION} -> Record

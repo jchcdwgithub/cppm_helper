@@ -1,0 +1,6 @@
+Value Required VLAN (\d{1,4})
+Value NAME (.*)
+
+Start
+ ^ *vlan +${VLAN}
+ ^ *name +${NAME} -> Record
