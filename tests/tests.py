@@ -589,3 +589,43 @@ def test_process_mgmt_int_information_adds_int_vlan_info_when_vlan_id_is_given()
     data_util.process_mgmt_int_information('vlan 33', 'aos-cx', current_device_info,device,new_row)
     assert new_row[0] == '10.1.1.33/24'
     assert new_row[1] == 'VLAN 33'
+
+def test_truncate_interface_names_truncates_gigabitethernet_names():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['GigabitEthernet1/0/22'],
+            ['TenGigabitEthernet1/0/5'],
+            ['FortyGigabitEthernet1/0/1']
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Gi1/0/22'],
+            ['Te1/0/5'],
+            ['Fo1/0/1']
+        ]
+    )
+    data_util.truncate_interface_names(test_table)
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row
+
+def test_truncate_interface_names_truncates_port_channel_names():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['Port-channel1'],
+            ['Port-channel11']
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Po1'],
+            ['Po11']
+        ]
+    )
+    data_util.truncate_interface_names(test_table)
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row

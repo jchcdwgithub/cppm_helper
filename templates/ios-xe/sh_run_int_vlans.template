@@ -2,10 +2,10 @@ Value Required VLAN (\d{1,4})
 Value DESCRIPTION (.*)
 Value Required IP_ADDRESS (\d{1,3}(\.\d{1,3}){3})
 Value Required SUBNET (\d{1,3}(\.\d{1,3}){3})
-Value List DHCP_HELPER (\d{1,3}(\.\d{1,3}){3})
+Value List IP_HELPER_ADDRESS (\d{1,3}(\.\d{1,3}){3})
 
 Start
  ^ *interface Vlan${VLAN}
  ^ *description ${DESCRIPTION} -> Continue
- ^ *ip helper-address ${DHCP_HELPER} -> Continue
+ ^ *ip helper-address ${IP_HELPER_ADDRESS} -> Continue
  ^ *ip address ${IP_ADDRESS} ${SUBNET} -> Record

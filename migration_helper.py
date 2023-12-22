@@ -7,11 +7,11 @@ import copy
 import data_structures
 
 def main():
-    supported_oses = ['aos-cx','aos-s']
+    supported_oses = ['ios-xe']
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
-    if os.path.exists(hosts_file):
-        connection_util.gather_information_from_hosts(data_structures.show_commands)
+    #if os.path.exists(hosts_file):
+    #    connection_util.gather_information_from_hosts(data_structures.show_commands)
 
     templates_folder = os.path.join(cwd, 'templates')
     for supported_os in supported_oses:
@@ -79,6 +79,8 @@ def main():
                     ip_helper_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID', ip_helper_all_systems)
                 elif supported_os == 'aos-s':
                     ip_helper_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+                elif supported_os == 'ios-xe':
+                    ip_helper_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
 
                 print(f'gathering NTP information for {device_name}...')
                 ntp_ip_headers_to_include = ['NTP_SERVER_IP']
@@ -103,9 +105,9 @@ def main():
                         if not helper_ip in helper_ip_set:
                             helper_ip_set.add(helper_ip)
                             helper_ips.append([helper_ip])
-
-            ip_helper_systems_table = data_util.create_excel_printable_table('DHCP', helper_ips, ['IP_HELPER_ADDRESS'], convert_table=False)
-            overview_first_column.append(ip_helper_systems_table)
+            if len(helper_ips) > 0:
+                ip_helper_systems_table = data_util.create_excel_printable_table('DHCP', helper_ips, ['IP_HELPER_ADDRESS'], convert_table=False)
+                overview_first_column.append(ip_helper_systems_table)
 
             ntp_ip_systems_table = data_util.create_excel_printable_table('NTP', ntp_ip_all_systems, ['NTP_SERVER_IP'])
             overview_first_column.append(ntp_ip_systems_table)
@@ -177,15 +179,20 @@ def main():
                 current_table[0]['name'] = device_name
                 vlan_tables.append(current_table)
 
-                if supported_os == 'aos-cx':
-                    sh_run_int_index = data_structures.os_templates[supported_os].index('sh_run_int.template')
-                    sh_int_lag_table = device[data_structures.os_templates[supported_os].index('sh_run_int_lag.template')]
-                    sh_int_table = device[data_structures.os_templates[supported_os].index('sh_run_int.template')]
-                    merged_table = data_util.merge_tables_into_one_table([sh_int_lag_table, sh_int_table])
-                    device[sh_run_int_index] = merged_table
+#                if supported_os == 'aos-cx':
+#                   sh_run_int_index = data_structures.os_templates[supported_os].index('sh_run_int.template')
+#                    sh_int_lag_table = device[data_structures.os_templates[supported_os].index('sh_run_int_lag.template')]
+#                    sh_int_table = device[data_structures.os_templates[supported_os].index('sh_run_int.template')]
+#                    merged_table = data_util.merge_tables_into_one_table([sh_int_lag_table, sh_int_table])
+#                    device[sh_run_int_index] = merged_table
 
                 device_port_table = copy.deepcopy(data_structures.os_tables[supported_os]['device_port_table'])
                 device_port_table[0]['table_name'] = device_name
+                if supported_os == 'ios-xe':
+                    tables_to_convert = ['sh_cdp_ne_de.template', 'sh_run_int.template', 'sh_run_int_lag.template']
+                    for table in tables_to_convert:
+                        current_table_to_convert = device[data_structures.os_templates[supported_os].index(table)]
+                        data_util.truncate_interface_names(current_table_to_convert)
 
                 port_table = data_util.create_column_ds(device_port_table, device)
                 worksheet_names.append(port_table[0]['name'])

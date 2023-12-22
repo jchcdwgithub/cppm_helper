@@ -7,4 +7,4 @@ Value SPEED (a-100|a-1000|a-2500|a-5000|a-10000|\d{3-5}|auto)
 Value TYPE (.*)
 
 Start
- ^ *${INTERFACE} +${NAME} +${STATUS} +${VLAN} +${DUPLEX} +${SPEED} -> Record
+ ^ *${INTERFACE} +${NAME} +${STATUS} +${VLAN} +${DUPLEX} +${SPEED} +${TYPE} -> Record
