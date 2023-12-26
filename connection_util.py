@@ -9,10 +9,11 @@ def get_hostname(os_name:str, sshclient) -> str:
     param:
         sshclient is either paramiko.client.SSHClient or netmiko.ConnectHandler
     '''
+    netmiko_oses = ['aos-s', 'ios-xe', 'nx-os']
     if os_name == 'aos-cx':
         _stdin, _stdout, _stderr = sshclient.exec_command('show host')
         return _stdout.read().decode().strip()
-    elif os_name == 'aos-s':
+    elif os_name in netmiko_oses:
         prompt = sshclient.find_prompt()
         return prompt[:-1]
     else:
@@ -53,6 +54,14 @@ def gather_information_from_hosts(show_commands:dict[str,list[str]]):
             'aos-s' : {
                 'module' : 'netmiko',
                 'netmiko-type' : 'aruba_osswitch'
+            },
+            'ios-xe' : {
+                'module' : 'netmiko',
+                'netmiko-type' : 'cisco_xe'
+            },
+            'nx-os' : {
+                'module' : 'netmiko',
+                'netmiko-type' : 'cisco_nxos'
             }
         }
         hosts = yaml.safe_load(hosts_file)['hosts']
