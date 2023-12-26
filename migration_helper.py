@@ -7,7 +7,7 @@ import copy
 import data_structures
 
 def main():
-    supported_oses = ['ios-xe']
+    supported_oses = ['nx-os']
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
     #if os.path.exists(hosts_file):
@@ -43,56 +43,50 @@ def main():
 
             worksheet_names.append('Overview')
 
-            systems_data = []
-            systems_table = {}
-
-            dns_table = {}
             dns_all_systems = {}
             dns_systems_table = {}
             overview_tables = []
             overview_first_column = []
 
-            ip_helper_table = {}
             ip_helper_all_systems = {}
             ip_helper_systems_table = {}
 
-            ntp_ip_table = {}
             ntp_ip_all_systems = {}
             ntp_ip_systems_table = {}
 
-            radius_table = {}
             radius_all_systems = {}
             radius_systems_table = {}
 
-            snmp_table = {}
             snmp_all_systems = {}
             snmp_systems_table = {}
     
             for device_name, device in zip(device_names, results):
                 print(f'gathering DNS information for {device_name}...')
                 dns_headers_to_include = ['DNS_IP']
-                dns_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('ip_dns_server_address.template')], dns_headers_to_include,'DNS_IP', dns_all_systems)
+                data_util.create_base_table(device[data_structures.os_templates[supported_os].index('ip_dns_server_address.template')], dns_headers_to_include,'DNS_IP', dns_all_systems)
 
                 print(f'gathering IP helper address information for {device_name}...')
                 ip_helper_headers_to_include = ['VLAN_ID', 'IP_HELPER_ADDRESS']
                 if supported_os == 'aos-cx':
-                    ip_helper_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID', ip_helper_all_systems)
+                    data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID', ip_helper_all_systems)
                 elif supported_os == 'aos-s':
-                    ip_helper_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+                    data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
                 elif supported_os == 'ios-xe':
-                    ip_helper_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+                    data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+                elif supported_os == 'nx-os':
+                    data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
 
                 print(f'gathering NTP information for {device_name}...')
                 ntp_ip_headers_to_include = ['NTP_SERVER_IP']
-                ntp_ip_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('ntp_server_ip.template')], ntp_ip_headers_to_include, 'NTP_SERVER_IP', ntp_ip_all_systems)
+                data_util.create_base_table(device[data_structures.os_templates[supported_os].index('ntp_server_ip.template')], ntp_ip_headers_to_include, 'NTP_SERVER_IP', ntp_ip_all_systems)
 
                 print(f'gathering RADIUS information for {device_name}...')
                 radius_headers_to_include = ['RADIUS_HOST']
-                radius_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('run_radius.template')], radius_headers_to_include, 'RADIUS_HOST', radius_all_systems)
+                data_util.create_base_table(device[data_structures.os_templates[supported_os].index('run_radius.template')], radius_headers_to_include, 'RADIUS_HOST', radius_all_systems)
 
                 print(f'gathering SNMP information for {device_name}...')
                 snmp_headers_to_include = ['SNMP_SERVER_IP']
-                snmp_table = data_util.create_base_table(device[data_structures.os_templates[supported_os].index('snmp_server_host.template')], snmp_headers_to_include, 'SNMP_SERVER_IP', snmp_all_systems)
+                data_util.create_base_table(device[data_structures.os_templates[supported_os].index('snmp_server_host.template')], snmp_headers_to_include, 'SNMP_SERVER_IP', snmp_all_systems)
 
             dns_systems_table = data_util.create_excel_printable_table('DNS', dns_all_systems, ['DNS_IP'])
             overview_first_column.append(dns_systems_table)
@@ -120,7 +114,6 @@ def main():
 
             overview_tables.append(overview_first_column)
 
-            all_rows = []
             all_systems = {}
 
             for device_name, device in zip(device_names, results):
@@ -129,11 +122,9 @@ def main():
                     all_systems = data_util.create_column_ds(system_table, device)
                     current_device_info = all_systems
                     new_row = current_device_info[0]['data'][0]
-                    data_util.process_mgmt_int_information('vlan 33', supported_os, current_device_info, device, new_row)
                 else:
                     current_device_info = data_util.create_column_ds(system_table, device)
                     new_row = current_device_info[0]['data'][0]
-                    data_util.process_mgmt_int_information('vlan 33', supported_os, current_device_info, device, new_row)
                     all_systems[0]['data'].append(new_row)
 
             overview_tables.append(all_systems)
@@ -155,7 +146,6 @@ def main():
                 device_vlan_headers = device_vlans[0]
                 device_vlan_data = device_vlans[1]
                 vlan_id_index = device_vlan_headers.index('VLAN_ID')
-                vlans_not_in_device_vlans = []
                 device_vlans = set()
                 for vlan in device_vlan_data:
                     vlan_id = vlan[vlan_id_index]
@@ -163,7 +153,7 @@ def main():
                 for vlan in all_vlans:
                     if not vlan in device_vlans:
                         vlan_row = [vlan]
-                        for header in device_vlan_headers[1:]:
+                        for _ in device_vlan_headers[1:]:
                             vlan_row.append('')
                         device_vlan_data.append(vlan_row)
                 device_vlan_data.sort(key=lambda x : int(x[0]))
@@ -179,20 +169,25 @@ def main():
                 current_table[0]['name'] = device_name
                 vlan_tables.append(current_table)
 
-#                if supported_os == 'aos-cx':
-#                   sh_run_int_index = data_structures.os_templates[supported_os].index('sh_run_int.template')
-#                    sh_int_lag_table = device[data_structures.os_templates[supported_os].index('sh_run_int_lag.template')]
-#                    sh_int_table = device[data_structures.os_templates[supported_os].index('sh_run_int.template')]
-#                    merged_table = data_util.merge_tables_into_one_table([sh_int_lag_table, sh_int_table])
-#                    device[sh_run_int_index] = merged_table
+                if supported_os == 'aos-cx':
+                   sh_run_int_index = data_structures.os_templates[supported_os].index('sh_run_int.template')
+                   sh_int_lag_table = device[data_structures.os_templates[supported_os].index('sh_run_int_lag.template')]
+                   sh_int_table = device[data_structures.os_templates[supported_os].index('sh_run_int.template')]
+                   merged_table = data_util.merge_tables_into_one_table([sh_int_lag_table, sh_int_table])
+                   device[sh_run_int_index] = merged_table
 
                 device_port_table = copy.deepcopy(data_structures.os_tables[supported_os]['device_port_table'])
                 device_port_table[0]['table_name'] = device_name
                 if supported_os == 'ios-xe':
                     tables_to_convert = ['sh_cdp_ne_de.template', 'sh_run_int.template', 'sh_run_int_lag.template']
-                    for table in tables_to_convert:
-                        current_table_to_convert = device[data_structures.os_templates[supported_os].index(table)]
-                        data_util.truncate_interface_names(current_table_to_convert)
+                    for current_table in tables_to_convert:
+                        current_table_to_convert = device[data_structures.os_templates[supported_os].index(current_table)]
+                        data_util.truncate_interface_names(current_table_to_convert, supported_os)
+                elif supported_os == 'nx-os':
+                    tables_to_convert = ['sh_run_int.template', 'sh_run_int.template', 'sh_run_int_lag.template']
+                    for current_table in tables_to_convert:
+                        current_table_to_convert = device[data_structures.os_templates[supported_os].index(current_table)]
+                        data_util.truncate_interface_names(current_table_to_convert, supported_os)
 
                 port_table = data_util.create_column_ds(device_port_table, device)
                 worksheet_names.append(port_table[0]['name'])

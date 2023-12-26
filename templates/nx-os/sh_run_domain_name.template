@@ -1,0 +1,4 @@
+Value DOMAIN_NAME (.+(\..+){1,4})
+
+Start
+ ^ *ip domain-name ${DOMAIN_NAME} -> Record

@@ -590,7 +590,7 @@ def test_process_mgmt_int_information_adds_int_vlan_info_when_vlan_id_is_given()
     assert new_row[0] == '10.1.1.33/24'
     assert new_row[1] == 'VLAN 33'
 
-def test_truncate_interface_names_truncates_gigabitethernet_names():
+def test_truncate_interface_names_truncates_gigabitethernet_names_iosxe():
     test_table = (
         ['INTERFACE'],
         [
@@ -607,11 +607,11 @@ def test_truncate_interface_names_truncates_gigabitethernet_names():
             ['Fo1/0/1']
         ]
     )
-    data_util.truncate_interface_names(test_table)
+    data_util.truncate_interface_names(test_table,'ios-xe')
     for e_row,g_row in zip(expected[1],test_table[1]):
         assert e_row == g_row
 
-def test_truncate_interface_names_truncates_port_channel_names():
+def test_truncate_interface_names_truncates_port_channel_names_iosxe():
     test_table = (
         ['INTERFACE'],
         [
@@ -626,6 +626,44 @@ def test_truncate_interface_names_truncates_port_channel_names():
             ['Po11']
         ]
     )
-    data_util.truncate_interface_names(test_table)
+    data_util.truncate_interface_names(test_table,'ios-xe')
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row
+
+def test_truncate_interface_names_truncates_gigabitethernet_names_nxos():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['Ethernet1/22'],
+            ['Ethernet2/5'],
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Eth1/22'],
+            ['Eth2/5'],
+        ]
+    )
+    data_util.truncate_interface_names(test_table,'nx-os')
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row
+
+def test_truncate_interface_names_truncates_port_channel_names_nxos():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['port-channel1'],
+            ['port-channel11']
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Po1'],
+            ['Po11']
+        ]
+    )
+    data_util.truncate_interface_names(test_table,'nx-os')
     for e_row,g_row in zip(expected[1],test_table[1]):
         assert e_row == g_row

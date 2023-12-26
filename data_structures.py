@@ -49,6 +49,23 @@ os_templates = {
         'snmp_server_host.template',
         'run_radius.template',
         'ntp_server_ip.template',
+    ],
+    'nx-os' : [
+        'sh_cdp_ne_de.template',
+        'sh_int_desc_eth.template',
+        'sh_int_stats.template',
+        'sh_module.template',
+        'sh_module_mac_serial.template',
+        'sh_run_hostname.template',
+        'ip_dns_server_address.template',
+        'sh_run_domain_name.template',
+        'ntp_server_ip.template',
+        'sh_run_vlans.template',
+        'sh_run_int_vlans.template',
+        'sh_run_int_lag.template',
+        'sh_run_int.template',
+        'run_radius.template',
+        'snmp_server_host.template',
     ]
 }
 
@@ -354,6 +371,105 @@ os_tables = {
             }
         ],
     },
+    'nx-os' : {
+        'device_port_table' :
+        [
+            {
+                'table_name' : '',
+                'base_table' : {
+                    'base_table_index' : os_templates['nx-os'].index('sh_int_stats.template'),
+                    'headers_to_include' : ['INTERFACE', 'DESCRIPTION', 'STATUS', 'SPEED', 'TYPE'],
+                    'key': 'INTERFACE'
+                },
+                'parsed_info_to_add': [
+                    {
+                        'table_name' : 'cdp_neighbors',
+                        'table_index' : os_templates['nx-os'].index('sh_cdp_ne_de.template'),
+                        'headers_to_add' : [
+                            ('DEVICE_ID', 'NEIGHBOR_NAME'),
+                            ('PLATFORM', 'NEIGHBOR_DESCRIPTION')
+                        ]
+                    },
+                    {
+                        'table_name' : 'sh_run_int',
+                        'table_index' : os_templates['nx-os'].index('sh_run_int.template'),
+                        'headers_to_add' : [
+                            ('UNTAGGED_VLAN', 'NATIVE_VLAN'),
+                            ('TAGGED_VLAN', 'TAGGED_VLAN'),
+                        ]
+                    },
+                    {
+                        'table_name' : 'sh_run_int_lag.template',
+                        'table_index' : os_templates['nx-os'].index('sh_run_int_lag.template'),
+                        'headers_to_add' : [
+                            ('LAG', 'LAG'),
+                            ('CHANNEL_GROUP', 'CHANNEL_GROUP'),
+                        ]
+                    }
+                ],
+                'final_headers' : [
+                    'INTERFACE',
+                    'DESCRIPTION',
+                    'NEIGHBOR_NAME',
+                    'NEIGHBOR_DESCRIPTION',
+                    'STATUS',
+                    'SPEED',
+                    'TYPE',
+                    'CHANNEL_GROUP',
+                    'LAG',
+                    'NATIVE_VLAN',
+                    'TAGGED_VLAN'
+                ],
+                'convert_table' : True
+            }
+        ],
+        'L2/L3' : [
+            [
+                {
+                    'table_name' : '',
+                    'base_table' : {
+                        'base_table_index' : os_templates['nx-os'].index('sh_run_vlans.template'),
+                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME'],
+                        'key' : 'VLAN_ID'
+                    },
+                    'parsed_info_to_add' : [
+                        {
+                            'table_name' : 'sh_run_int_vlans',
+                            'table_index' : os_templates['nx-os'].index('sh_run_int_vlans.template'),
+                            'headers_to_add' : [
+                                ('IP_ADDRESS', 'IP_ADDRESS')
+                            ]
+                        }
+                    ],
+                    'final_headers' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                    'convert_table' : True
+                }
+            ]
+        ],
+        'system_table' :
+        [
+            {
+                'table_name' : 'system_info',
+                'base_table' : {
+                    'base_table_index' : os_templates['nx-os'].index('sh_module.template'),
+                    'headers_to_include' : ['SWITCH','MODEL'],
+                    'key' : 'SWITCH'
+                },
+                'parsed_info_to_add' : [
+                    {
+                        'table_name' : 'sh_module_mac_serial',
+                        'table_index' : os_templates['nx-os'].index('sh_module_mac_serial.template'),
+                        'headers_to_add' : [
+                            ('MAC', 'MAC'),
+                            ('SERIAL', 'SERIAL')
+                        ]
+                    }
+                ],
+                'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
+                'convert_table' : True,
+            }
+        ],
+    },
 }
 
 show_commands = {
@@ -494,6 +610,98 @@ show_commands = {
         'show version',
         'show vlan',
         'show vlan brief',
+        'show vtp',
+        'show vtp status',
+    ],
+    'nx-os' : [
+        'term len 0',
+        'show access-list',
+        'show call-home profile all',
+        'show cdp neighbors',
+        'show cdp neighbors detail',
+        'show clock',
+        'show env',
+        'show env all',
+        'show environment',
+        'show environment all',
+        'show etherchannel summary',
+        'show feature | grep enabled',
+        'show hsrp brief',
+        'show interface description',
+        'show interface status',
+        'show interface status err-disabled',
+        'show interface summary',
+        'show interfaces',
+        'show inventory',
+        'show ip access-list',
+        'show ip arp',
+        'show ip bgp neighbors',
+        'show ip bgp summary',
+        'show ip dhcp binding',
+        'show ip eigrp neighbor',
+        'show ip interface brief',
+        'show ip ospf neighbor',
+        'show ip ospf database',
+        'show ip protocols',
+        'show ip route',
+        'show ip route 0.0.0.0',
+        'show ip route bgp',
+        'show ip route eigrp',
+        'show ip route ospf',
+        'show ip route rip',
+        'show ip route summary',
+        'show ip ssh',
+        'show ip traffic',
+        'show license',
+        'show license all',
+        'show license host-id',
+        'show license status',
+        'show license summary',
+        'show license udi',
+        'show license usage',
+        'show log',
+        'show mac address-table dynamic',
+        'show mac address-table',
+        'show mac-address-table',
+        'show mac-address-table dynamic',
+        'show module',
+        'show monitor',
+        'show monitor detail',
+        'show ntp status',
+        'show ntp associations',
+        'show port-channel summary',
+        'show power in',
+        'show redundancy',
+        'show role',
+        'show route-map',
+        'show running',
+        'show span',
+        'show spanning-tree',
+        'show spanning-tree blocked',
+        'show spanning-tree summary',
+        'show spanning-tree root',
+        'show standby brief',
+        'show stack-power',
+        'show stack-power detail',
+        'show stack-power budgeting',
+        'show stack-power neighbors',
+        'show stackwise-virtual',
+        'show stackwise-virtual neighbors',
+        'show stackwise-virtual link',
+        'show stackwise-virtual dual-active-detection',
+        'show switch',
+        'show switch neighbors',
+        'show switch stack-ports summary',
+        'show switch stack-ring speed',
+        'show switch detail',
+        'show switch virtual dual-active fast-hello counters',
+        'show switch virtual redundancy',
+        'show switch virtual role detail',
+        'show version',
+        'show vlan',
+        'show vlan brief',
+        'show vtp',
+        'show vtp status',
         'show vpc',
         'show vpc br',
         'show vpc consistency-parameters vlans',
@@ -502,7 +710,6 @@ show_commands = {
         'show vpc statistics peer-keepalive',
         'show vpc peer-keepalive',
         'show vpc role',
-        'show vtp',
-        'show vtp status',
+
     ]
 }

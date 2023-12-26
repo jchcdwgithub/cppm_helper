@@ -678,24 +678,29 @@ def process_mgmt_int_information(management_int:str, supported_os:str, current_d
         else:
             int_source = management_int
 
-def truncate_interface_names(cdp_neigbhor_table):
+def truncate_interface_names(table, os:str):
     '''
     Changes the interface names in the cdp_neighbor_table to their truncated versions.
     i.e. GigabitEthernet1/0/1 becomes Gi1/0/1, Port-Channel10 becomes Po10, etc.
     This is required to match how the interface names are presented in other show commands.
     '''
 
-    sh_cdp_ne_de_headers = cdp_neigbhor_table[0]
-    sh_cdp_ne_de_data = cdp_neigbhor_table[1]
-    interface_index = sh_cdp_ne_de_headers.index('INTERFACE')
-    for data_row in sh_cdp_ne_de_data:
+    headers = table[0]
+    data = table[1]
+    interface_index = headers.index('INTERFACE')
+
+    for data_row in data:
         interface = data_row[interface_index]
         if 'Ethernet' in interface:
             split_int = interface.split('/')
-            prefix = split_int[0][:2] + split_int[0][-1]
-            new_int_name = prefix + '/' + split_int[1] + '/' + split_int[2]
+            if os == 'ios-xe':
+                prefix = split_int[0][:2] + split_int[0][-1]
+                new_int_name = prefix + '/' + split_int[1] + '/' + split_int[2]
+            elif os == 'nx-os':
+                prefix = 'Eth' + split_int[0][-1]
+                new_int_name = prefix + '/' + split_int[1]
             data_row[interface_index] = new_int_name
-        elif 'Port-channel' in interface:
+        elif 'port-channel' in interface.lower():
             num_index = interface.index('l') + 1
             new_int_name = 'Po' + interface[num_index:]
             data_row[interface_index] = new_int_name

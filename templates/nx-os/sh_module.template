@@ -1,0 +1,8 @@
+Value SWITCH (\d{1,2})
+Value PORTS (\d{1,3})
+Value MODULE_TYPE (.*Module|.*Controller)
+Value MODEL (N9K(-[a-zA-Z0-9]+)+)
+Value STATUS (ok|active \*|ha-standby|standby|active)
+
+Start
+ ^ *${SWITCH} +${PORTS} +${MODULE_TYPE} +${MODEL} +${STATUS} -> Record
