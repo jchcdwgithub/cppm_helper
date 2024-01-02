@@ -7,7 +7,7 @@ import copy
 import data_structures
 
 def main():
-    supported_oses = ['nx-os']
+    supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os']
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
     #if os.path.exists(hosts_file):
@@ -120,12 +120,20 @@ def main():
                 system_table = copy.deepcopy(data_structures.os_tables[supported_os]['system_table'])
                 if all_systems == {}:
                     all_systems = data_util.create_column_ds(system_table, device)
-                    current_device_info = all_systems
-                    new_row = current_device_info[0]['data'][0]
+                    current_device_headers = all_systems[0]['headers']
+                    sys_name_index = current_device_headers.index('SYSTEM_NAME')
+                    current_device_data = all_systems[0]['data']
+                    for data_row in current_device_data:
+                        data_row[sys_name_index] = device_name
                 else:
                     current_device_info = data_util.create_column_ds(system_table, device)
-                    new_row = current_device_info[0]['data'][0]
-                    all_systems[0]['data'].append(new_row)
+                    data_rows = current_device_info[0]['data']
+                    current_device_headers = all_systems[0]['headers']
+                    sys_name_index = current_device_headers.index('SYSTEM_NAME')
+                    current_device_data = all_systems[0]['data']
+                    for data_row in data_rows:
+                        data_row[sys_name_index] = device_name
+                        all_systems[0]['data'].append(data_row)
 
             overview_tables.append(all_systems)
             tables.append(overview_tables)
@@ -184,7 +192,7 @@ def main():
                         current_table_to_convert = device[data_structures.os_templates[supported_os].index(current_table)]
                         data_util.truncate_interface_names(current_table_to_convert, supported_os)
                 elif supported_os == 'nx-os':
-                    tables_to_convert = ['sh_run_int.template', 'sh_run_int.template', 'sh_run_int_lag.template']
+                    tables_to_convert = ['sh_run_int.template', 'sh_run_int.template', 'sh_run_int_lag.template', 'sh_cdp_ne_de.template']
                     for current_table in tables_to_convert:
                         current_table_to_convert = device[data_structures.os_templates[supported_os].index(current_table)]
                         data_util.truncate_interface_names(current_table_to_convert, supported_os)

@@ -136,8 +136,6 @@ def add_new_headers_to_parsed_data(existing_datastructure:dict[str,str],parsed_d
                 new_header_name = new_headers[new_header]['new_name']
                 header_index = new_headers[new_header]['index']
                 existing_datastructure['data'][item_name][new_header_name] = item[header_index]
-        else:
-            print(f'Could not find {item_name} in original table, skipping {item_name}...')
     
 def fill_data_with_empty_values(existing_datastructure:dict[str,str], new_headers:dict[str,str]):
     '''
@@ -578,6 +576,23 @@ def create_base_table(base_data:list[list[str]], headers_to_include:list[str], m
     return_table['data'] = base_table
     return return_table
 
+def aggregate_information_from_all_output_tables_to_base_table(table:dict, new_outputs:dict,matched_parameter_index:int=0):
+    '''
+    Adds key entries from all output_tables to the table. This will add any key entries found
+    in the output tables that are not found in the original table.
+    '''
+    table_data = table['data']
+    table_headers = table['headers']
+    for _,output_data in new_outputs.items():
+        output_info = output_data['parsed_data'][1]
+        for output_row in output_info:
+            output_key_item = output_row[matched_parameter_index]
+            if not output_key_item in table_data:
+                table_data[output_key_item] = {}
+                for header_ind, table_header in enumerate(table_headers):
+                    if header_ind != matched_parameter_index:
+                        table_data[output_key_item][table_header] = ''
+
 def add_new_info_from_other_tables_to_table(table:dict, new_outputs:dict,matched_parameter_index:int=0):
     '''
     The table is of the type:
@@ -629,6 +644,7 @@ def create_column_ds(col_tables:list[dict], ds:list[list[str]]) -> list[list[str
                 matched_parameter_index = 0
                 if 'matched_parameter_index' in table:
                     matched_parameter_index = table['matched_parameter_index']
+                aggregate_information_from_all_output_tables_to_base_table(base_table, outputs, matched_parameter_index)
                 add_new_info_from_other_tables_to_table(base_table, outputs, matched_parameter_index)
         table_name = table['table_name']
         table_final_headers = table['final_headers']

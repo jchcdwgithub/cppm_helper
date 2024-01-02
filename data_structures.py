@@ -153,7 +153,7 @@ os_tables = {
                 'table_name' : 'system_info',
                 'base_table' : {
                     'base_table_index' : os_templates['aos-s'].index('sh_system.template'),
-                    'headers_to_include' : ['SYSTEM_NAME', 'SOFTWARE_VERSION', 'SERIAL_NUMBER'],
+                    'headers_to_include' : ['SERIAL_NUMBER','SYSTEM_NAME', 'SOFTWARE_VERSION'],
                     'key' : 'SERIAL_NUMBER'
                 },
                 'parsed_info_to_add' : [
@@ -165,9 +165,17 @@ os_tables = {
                         ],
                     }
                 ],
-                'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'CHASSIS_MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
+                'final_headers' : [
+                    'LOCATION', 
+                    'SUB_LOCATION', 
+                    'SYSTEM_NAME', 
+                    'MGMT_IP', 
+                    'MGMT_SOURCE', 
+                    'CHASSIS_MODEL', 
+                    'SERIAL_NUMBER', 
+                    'SOFTWARE_VERSION'
+                    ],
                 'convert_table' : True,
-                'matched_parameter_index' : 1
             }
         ],
     },
@@ -187,7 +195,8 @@ os_tables = {
                         'table_index' : os_templates['aos-cx'].index('sh_lldp_in_re_de.template'),
                         'headers_to_add' : [
                             ('SYSTEM_NAME', 'NEIGHBOR_NAME'),
-                            ('SYSTEM_DESCRIPTION', 'NEIGHBOR_DESCRIPTION')
+                            ('SYSTEM_DESCRIPTION', 'NEIGHBOR_DESCRIPTION'),
+                            ('CHASSIS_ID', 'NEIGHBOR_IP')
                         ]
                     },
                     {
@@ -212,6 +221,7 @@ os_tables = {
                     'NAME',
                     'NEIGHBOR_NAME',
                     'NEIGHBOR_DESCRIPTION',
+                    'NEIGHBOR_IP',
                     'STATUS',
                     'CONFIG_MODE',
                     'SPEED',
@@ -252,7 +262,7 @@ os_tables = {
                 'table_name' : 'system_info',
                 'base_table' : {
                     'base_table_index' : os_templates['aos-cx'].index('sh_system.template'),
-                    'headers_to_include' : ['SYSTEM_NAME', 'SOFTWARE_VERSION', 'SERIAL_NUMBER'],
+                    'headers_to_include' : ['SERIAL_NUMBER','SYSTEM_NAME', 'SOFTWARE_VERSION'],
                     'key' : 'SERIAL_NUMBER'
                 },
                 'parsed_info_to_add' : [
@@ -264,9 +274,16 @@ os_tables = {
                         ],
                     }
                 ],
-                'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'CHASSIS_MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
+                'final_headers' : [
+                    'LOCATION', 
+                    'SUB_LOCATION', 
+                    'SYSTEM_NAME', 
+                    'MGMT_IP', 
+                    'MGMT_SOURCE', 
+                    'CHASSIS_MODEL', 
+                    'SERIAL_NUMBER', 
+                    'SOFTWARE_VERSION'],
                 'convert_table' : True,
-                'matched_parameter_index' : 1
             }
         ],
     },
@@ -295,7 +312,8 @@ os_tables = {
                         'table_index' : os_templates['ios-xe'].index('sh_cdp_ne_de.template'),
                         'headers_to_add' : [
                             ('DEVICE_ID', 'NEIGHBOR_NAME'),
-                            ('PLATFORM', 'NEIGHBOR_DESCRIPTION')
+                            ('PLATFORM', 'NEIGHBOR_DESCRIPTION'),
+                            ('IP_ADDRESS', 'NEIGHBOR_IP')
                         ]
                     },
                     {
@@ -320,6 +338,7 @@ os_tables = {
                     'DESCRIPTION',
                     'NEIGHBOR_NAME',
                     'NEIGHBOR_DESCRIPTION',
+                    'NEIGHBOR_IP',
                     'PROTOCOL',
                     'STATUS',
                     'CONNECTED',
@@ -387,7 +406,8 @@ os_tables = {
                         'table_index' : os_templates['nx-os'].index('sh_cdp_ne_de.template'),
                         'headers_to_add' : [
                             ('DEVICE_ID', 'NEIGHBOR_NAME'),
-                            ('PLATFORM', 'NEIGHBOR_DESCRIPTION')
+                            ('PLATFORM', 'NEIGHBOR_DESCRIPTION'),
+                            ('IP_ADDRESS', 'NEIGHBOR_IP')
                         ]
                     },
                     {
@@ -412,6 +432,7 @@ os_tables = {
                     'DESCRIPTION',
                     'NEIGHBOR_NAME',
                     'NEIGHBOR_DESCRIPTION',
+                    'NEIGHBOR_IP',
                     'STATUS',
                     'SPEED',
                     'TYPE',
@@ -452,7 +473,7 @@ os_tables = {
                 'table_name' : 'system_info',
                 'base_table' : {
                     'base_table_index' : os_templates['nx-os'].index('sh_module.template'),
-                    'headers_to_include' : ['SWITCH','MODEL'],
+                    'headers_to_include' : ['SWITCH','MODULE_TYPE','MODEL'],
                     'key' : 'SWITCH'
                 },
                 'parsed_info_to_add' : [
@@ -461,11 +482,22 @@ os_tables = {
                         'table_index' : os_templates['nx-os'].index('sh_module_mac_serial.template'),
                         'headers_to_add' : [
                             ('MAC', 'MAC'),
-                            ('SERIAL', 'SERIAL')
+                            ('SERIAL', 'SERIAL_NUMBER')
                         ]
                     }
                 ],
-                'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
+                'final_headers' : [
+                    'LOCATION', 
+                    'SUB_LOCATION', 
+                    'SWITCH',
+                    'SYSTEM_NAME', 
+                    'MGMT_IP', 
+                    'MGMT_SOURCE', 
+                    'MODULE_TYPE',
+                    'MODEL', 
+                    'SERIAL_NUMBER', 
+                    'SOFTWARE_VERSION'
+                    ],
                 'convert_table' : True,
             }
         ],
