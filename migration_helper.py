@@ -38,6 +38,8 @@ def main():
                     with open(show_filepath) as sf:
                         sf_lines = sf.readlines()
                         hostname = data_util.extract_hostname_from_cli_output(sf_lines)
+                        if hostname == '':
+                            hostname = data_util.extract_hostname_from_show_file(show_file)
                         device_names.append(hostname)
 
             worksheet_names.append('Overview')
