@@ -667,3 +667,18 @@ def test_truncate_interface_names_truncates_port_channel_names_nxos():
     data_util.truncate_interface_names(test_table,'nx-os')
     for e_row,g_row in zip(expected[1],test_table[1]):
         assert e_row == g_row
+
+def test_extract_hostname_from_show_file_returns_beginning_of_filename():
+    expected = 'HOSTNAME'
+    generated = data_util.extract_hostname_from_show_file('HOSTNAME.txt')
+    assert expected == generated
+
+def test_extract_hostname_from_show_file_returns_filename_when_there_is_no_extension():
+    expected = 'HOSTNAME'
+    generated = data_util.extract_hostname_from_show_file('HOSTNAME')
+    assert expected == generated
+
+def test_extract_hostname_from_show_file_returns_filename_with_dots_replaced_by_underscore():
+    expected = 'HOSTNAME_CLOSET_1'
+    generated = data_util.extract_hostname_from_show_file('HOSTNAME.CLOSET.1.log')
+    assert expected == generated

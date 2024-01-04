@@ -720,3 +720,16 @@ def truncate_interface_names(table, os:str):
             num_index = interface.index('l') + 1
             new_int_name = 'Po' + interface[num_index:]
             data_row[interface_index] = new_int_name
+
+def extract_hostname_from_show_file(show_file_name:str) -> str:
+    '''
+    Given a filename with an extension, use the part before the extension
+    as the hostname. This assumes that auto-discovery was used otherwise
+    hostnames will be whatever the filename is.
+    '''
+    show_file_parts = show_file_name.split('.')
+    if len(show_file_parts) > 1:
+        hostname = '_'.join(show_file_parts[:-1])
+    else:
+        hostname = show_file_name
+    return hostname
