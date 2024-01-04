@@ -51,7 +51,7 @@ hosts:
 The MAC OUI to vendor information is stored in a CSV file stored in the static directory. If this information needs to be updated, upload a new CSV
 file of the same name and format to the static folder. Call it MAC_OUI.csv.
 
-## Downloading the script
+## Downloading the scripts
 If you have git installed you can clone this repository directly from github:
 
 `git clone https://github.com/jchcdwgithub/cppm_helper.git`
@@ -70,7 +70,7 @@ All the dependencies for this script are found in the requirements.txt file. The
 
 Note that your environment might use python3 and pip3 instead. You might also require escalated privileges (sudo mode) to install these dependencies.
 
-## Running the script
+## Running the scripts
 
 Once all the dependencies are installed, run the script using python:
 
