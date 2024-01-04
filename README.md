@@ -1,10 +1,15 @@
-# About this script
-This script is a utility script that parses information from one or more switches, processes that data and outputs the data into tables in an excel workbook.
+# About the scripts
+
+There are two scripts included in this repository. One is cppm_helper.py and the other is migration_helper.py.
+
+The cppm_helper script is a utility script that parses information from one or more switches, processes that data and outputs the data into tables in an excel workbook.
 Specifically, the MAC table, ARP entries and VLAN information are parsed and aggregated into a more convenient output.
 
+The migration_helper script works similarly to the cppm_helper script but it parses different information and aggregates them into tables which are then saved to an excel file.
+
 ## Where to place the configuration output data
-The script will look for configuration information in a directory called show_files (exact spelling). Create the show_files directory in the same folder where the cppm_helper.py file is then create a directory for each switch vendor OS that you have data for.
-Currently only AOS-CX and AOS-S outputs are supported. There should be one file per host and ideally, the file will be named what the hostname is.
+Both scripts will look for configuration information in a directory called show_files (exact spelling). Create the show_files directory in the same folder where the cppm_helper.py file is then create a directory for each switch vendor OS that you have data for.
+Currently the cppm_helper script only AOS-CX and AOS-S outputs are supported. The migration_helper script supports AOS-CX, AOS-S, IOS-XE and NX-OS. There should be one file per host and ideally, the file will be named what the hostname is.
 Ex.
 ```
 > show_files
@@ -18,13 +23,14 @@ Ex.
 
 Note that you do not have to create any folders if you are doing automatic information gathering. The show_files and OS subfolders will be created for you.
 
-The switch OS names need to be exact. Currently supported folder names are: aos-cx and aos-s. The script will skip any other files or folders in this directory.
+The switch OS names need to be exact. Currently supported folder names are: aos-cx, aos-s, ios-xe and nx-os. The script will skip any other files or folders in this directory.
 
 ## Automatic information gathering
-If there is connectivity to the host(s) from the machine where this script will be executing then a hosts.yml file can be created in the main directory.
-This is where the cppm_helper.py file resides. List the hosts and their information in the hosts.yml file, again under a specific vendor OS. Currently
-only AOS-CX and AOS-S hosts are supported. With this information, the script will SSH into each host listed and gather three pieces of information: show vlan,
+If there is connectivity to the host(s) from the machine where the scripts will be executing then a hosts.yml file can be created in the main directory.
+This is where the cppm_helper.py and migration_helper.py files reside. List the hosts and their information in the hosts.yml file, again under a specific vendor OS. Currently the cppm_helper script
+only AOS-CX and AOS-S hosts are supported while the migration_helper script also supports IOS-XE and NX-OS hosts. With this information, the cppm_helper script will SSH into each host listed and gather three pieces of information: show vlan,
 show mac-address and show arp. These files will be saved in the show_files directory. Each filename will be the hostname of the host it was derived from.
+The migration_helper script runs a variety of show commands which are specific to the OS. Generally CDP, LLDP, module, VLANs, version, inventory and other information will be gathered.
 
 ### hosts.yml example
 ```
@@ -68,4 +74,4 @@ Note that your environment might use python3 and pip3 instead. You might also re
 
 Once all the dependencies are installed, run the script using python:
 
-`python cppm_helper.py`
+`python cppm_helper.py` or `python migration_helper.py`
