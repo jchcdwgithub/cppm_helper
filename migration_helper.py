@@ -10,9 +10,8 @@ def main():
     supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os']
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
-    #if os.path.exists(hosts_file):
-    #    connection_util.gather_information_from_hosts(data_structures.show_commands)
-
+    if os.path.exists(hosts_file):
+        connection_util.gather_information_from_hosts(data_structures.show_commands)
     templates_folder = os.path.join(cwd, 'templates')
     for supported_os in supported_oses:
         aos_s_templates_folder = os.path.join(templates_folder, supported_os)

@@ -537,6 +537,7 @@ show_commands = {
         'show arp',
         'show int br',
         'show lacp aggregates',
+        'show interface',
         'show ip route',
         'show ip route all-vrfs',
         'show ip ospf',
