@@ -1,0 +1,8 @@
+Value Required RADIUS_NAME (.*)
+Value Required RADIUS_HOST (\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*)
+Value RADIUS_KEY ("?.*"?)
+
+Start
+ ^ *radius server ${RADIUS_NAME}
+ ^ *address ipv4 ${RADIUS_HOST}
+ ^ *key \d ${RADIUS_KEY} -> Record 

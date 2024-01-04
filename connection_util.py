@@ -9,10 +9,11 @@ def get_hostname(os_name:str, sshclient) -> str:
     param:
         sshclient is either paramiko.client.SSHClient or netmiko.ConnectHandler
     '''
+    netmiko_oses = ['aos-s', 'ios-xe', 'nx-os']
     if os_name == 'aos-cx':
         _stdin, _stdout, _stderr = sshclient.exec_command('show host')
         return _stdout.read().decode().strip()
-    elif os_name == 'aos-s':
+    elif os_name in netmiko_oses:
         prompt = sshclient.find_prompt()
         return prompt[:-1]
     else:
@@ -37,11 +38,12 @@ def write_command_outputs_to_file(command_outputs:list[list[str]], show_files_pa
     print('File saved successfully.')
     return
 
-def gather_information_from_hosts():
+def gather_information_from_hosts(show_commands:dict[str,list[str]]):
     '''
     Connect to all the hosts in the hosts file and collect information from them.
     The three commands ran against each host are show mac-address, show vlan and show arp.
     The output for each host is written to show_files/HOST_OS/HOSTNAME.txt
+    The show_commands dictionary contains a list of show commands to perform against each OS type.
     '''
     print('Discovered hosts.yml file. Processing hosts.')
     with open('./hosts.yml', 'r') as hosts_file:
@@ -52,6 +54,14 @@ def gather_information_from_hosts():
             'aos-s' : {
                 'module' : 'netmiko',
                 'netmiko-type' : 'aruba_osswitch'
+            },
+            'ios-xe' : {
+                'module' : 'netmiko',
+                'netmiko-type' : 'cisco_xe'
+            },
+            'nx-os' : {
+                'module' : 'netmiko',
+                'netmiko-type' : 'cisco_nxos'
             }
         }
         hosts = yaml.safe_load(hosts_file)['hosts']
@@ -73,7 +83,7 @@ def gather_information_from_hosts():
                             print(f'Successfully connected to {host["host"]}')
                             print('Getting hostname')
                             hostname = get_hostname(os_name, client)
-                            commands = ['show mac-address', 'show vlan', 'show arp']
+                            commands = show_commands[os_name]
                             command_outputs = []
                             for command in commands:
                                 print(f'Sending command {command}')
@@ -86,7 +96,7 @@ def gather_information_from_hosts():
                             print(f'Successfully connected to {host["host"]}')
                             print('Getting hostname')
                             hostname = get_hostname(os_name, connection)
-                            commands = ['show mac-address', 'show vlan', 'show arp']
+                            commands = show_commands[os_name]
                             command_outputs = []
                             for command in commands:
                                 print(f'Sending command {command}')

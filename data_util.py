@@ -1,5 +1,6 @@
 import os
 import re
+import data_structures
 
 def extract_oui(mac:str) -> str:
     dividers = [':','-','.']
@@ -128,16 +129,13 @@ def add_new_headers_to_parsed_data(existing_datastructure:dict[str,str],parsed_d
     for new_header in new_headers:
         new_header_name = new_headers[new_header]['new_name']
         existing_datastructure['headers'].append(new_header_name)
-    try: 
-        for item in parsed_data_info:
-            item_name = item[matched_parameter_index]
-            corresponding_item = existing_datastructure['data'][item_name]
+    for item in parsed_data_info:
+        item_name = item[matched_parameter_index]
+        if item_name in existing_datastructure['data']:
             for new_header in new_headers:
                 new_header_name = new_headers[new_header]['new_name']
                 header_index = new_headers[new_header]['index']
-                corresponding_item[new_header_name] = item[header_index]
-    except Exception as e:
-        print(e)
+                existing_datastructure['data'][item_name][new_header_name] = item[header_index]
     
 def fill_data_with_empty_values(existing_datastructure:dict[str,str], new_headers:dict[str,str]):
     '''
@@ -161,11 +159,15 @@ def convert_dictionary_to_table_structure(existing_datastructure:dict[str,str], 
     ds_dict_data = existing_datastructure['data'] 
     ds_headers = existing_datastructure['headers']
     for key,item_data in ds_dict_data.items():
-        current_item = [key]
+        current_item = []
         if len(ds_headers) > 1:
             for header in ds_headers:
                 if not header == match_key:
                     current_item.append(item_data[header])
+                else:
+                    current_item.append(key)
+        else:
+            current_item.append(key)
         table.append(current_item)
     return table
 
@@ -502,6 +504,29 @@ def combine_vlan_tables(vlan_tables):
                 combined_vlan_table['data'].append(row)
     return combined_vlan_table
 
+def merge_tables_into_one_table(tables:list[list[str]]) -> list[list[str]]:
+    '''
+    Merges a set of tables that have similar headers into one table. Returns
+    the merged table.
+    '''
+    merged_table = []
+    all_table_headers = []
+    for table in tables:
+        table_headers = table[0]
+        for header in table_headers:
+            if not header in all_table_headers:
+                all_table_headers.append(header)
+    for table in tables:
+        table_contents = table[1]
+        table_headers = table[0]
+        for row in table_contents:
+            new_row = ['' for _ in all_table_headers]
+            for header,item in zip(table_headers,row):
+                item_index = all_table_headers.index(header)
+                new_row[item_index] = item
+            merged_table.append(new_row)
+    return (all_table_headers, merged_table)    
+
 def reorder_table_based_on_new_header_order(orig_table:list[list[str]], new_headers:list[str]):
     '''
     Returns a table in the order outlined in new_headers. If new_headers contain headers not in the
@@ -550,6 +575,23 @@ def create_base_table(base_data:list[list[str]], headers_to_include:list[str], m
     return_table['headers'] = headers_to_include
     return_table['data'] = base_table
     return return_table
+
+def aggregate_information_from_all_output_tables_to_base_table(table:dict, new_outputs:dict,matched_parameter_index:int=0):
+    '''
+    Adds key entries from all output_tables to the table. This will add any key entries found
+    in the output tables that are not found in the original table.
+    '''
+    table_data = table['data']
+    table_headers = table['headers']
+    for _,output_data in new_outputs.items():
+        output_info = output_data['parsed_data'][1]
+        for output_row in output_info:
+            output_key_item = output_row[matched_parameter_index]
+            if not output_key_item in table_data:
+                table_data[output_key_item] = {}
+                for header_ind, table_header in enumerate(table_headers):
+                    if header_ind != matched_parameter_index:
+                        table_data[output_key_item][table_header] = ''
 
 def add_new_info_from_other_tables_to_table(table:dict, new_outputs:dict,matched_parameter_index:int=0):
     '''
@@ -602,6 +644,7 @@ def create_column_ds(col_tables:list[dict], ds:list[list[str]]) -> list[list[str
                 matched_parameter_index = 0
                 if 'matched_parameter_index' in table:
                     matched_parameter_index = table['matched_parameter_index']
+                aggregate_information_from_all_output_tables_to_base_table(base_table, outputs, matched_parameter_index)
                 add_new_info_from_other_tables_to_table(base_table, outputs, matched_parameter_index)
         table_name = table['table_name']
         table_final_headers = table['final_headers']
@@ -618,3 +661,62 @@ def create_column_ds(col_tables:list[dict], ds:list[list[str]]) -> list[list[str
         printable_table = create_excel_printable_table(table_name, base_table, table_final_headers, convert_table)
         column.append(printable_table)
     return column
+
+def process_mgmt_int_information(management_int:str, supported_os:str, current_device_info, device, new_row):
+    '''
+    Adds mgmt information to the systems in the overview systems tab.
+    params:
+        management_int: A string that indicates either the vlan or interface of the mgmt interface
+        supported_os: The OS that the device belongs to.
+        current_device_info: The table with system information for the device
+        device: A list of tuples with the headers and parsed information for a device.
+    '''
+    if supported_os == 'aos-cx':
+        int_source = ''
+        found_vlan = False
+        if 'vlan' in management_int:
+            int_source = management_int.split(' ')[-1]
+            int_vlan_table = device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')]
+            vlan_table_headers = int_vlan_table[0]
+            vlan_table_data = int_vlan_table[1]
+            for data_row in vlan_table_data:
+                vlan_id_index = vlan_table_headers.index('VLAN_ID')
+                if data_row[vlan_id_index] == int_source:
+                    mgmt_ip_index = current_device_info[0]['headers'].index('MGMT_IP')
+                    mgmt_source_index = current_device_info[0]['headers'].index('MGMT_SOURCE')
+                    vlan_ip_index = vlan_table_headers.index('IP_ADDRESS')
+                    new_row[mgmt_ip_index] = data_row[vlan_ip_index]
+                    new_row[mgmt_source_index] = f'VLAN {int_source}'
+                    found_vlan = True
+                    break
+            if not found_vlan:
+                print('management vlan information not found in vlan table, skipping mgmt interface information processing...')
+        else:
+            int_source = management_int
+
+def truncate_interface_names(table, os:str):
+    '''
+    Changes the interface names in the cdp_neighbor_table to their truncated versions.
+    i.e. GigabitEthernet1/0/1 becomes Gi1/0/1, Port-Channel10 becomes Po10, etc.
+    This is required to match how the interface names are presented in other show commands.
+    '''
+
+    headers = table[0]
+    data = table[1]
+    interface_index = headers.index('INTERFACE')
+
+    for data_row in data:
+        interface = data_row[interface_index]
+        if 'Ethernet' in interface:
+            split_int = interface.split('/')
+            if os == 'ios-xe':
+                prefix = split_int[0][:2] + split_int[0][-1]
+                new_int_name = prefix + '/' + split_int[1] + '/' + split_int[2]
+            elif os == 'nx-os':
+                prefix = 'Eth' + split_int[0][-1]
+                new_int_name = prefix + '/' + split_int[1]
+            data_row[interface_index] = new_int_name
+        elif 'port-channel' in interface.lower():
+            num_index = interface.index('l') + 1
+            new_int_name = 'Po' + interface[num_index:]
+            data_row[interface_index] = new_int_name

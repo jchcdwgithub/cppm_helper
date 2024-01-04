@@ -1,6 +1,6 @@
-Value LOCAL_PORT (\d/\d/\d{1,2})
-Value PORT_ID ([a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5})
-Value CHASSIS_ID (.*)
+Value Required LOCAL_PORT (\d/\d/\d{1,2})
+Value PORT_ID ([a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5}|\d/\d{1,2}/\d{1,2})
+Value CHASSIS_ID (\d{1,3}(\.\d{1,3}){3})
 Value SYSTEM_NAME (.*)
 Value SYSTEM_DESCRIPTION (.*)
 Value PORT_DESCRIPTION (.*)
@@ -9,6 +9,6 @@ Start
  ^ *Port +: +${LOCAL_PORT}
  ^ *Neighbor System-Name +: +${SYSTEM_NAME}
  ^ *Neighbor System-Description +: +${SYSTEM_DESCRIPTION}
- ^ *Neighbor Chassis-ID +: +${CHASSIS_ID}
+ ^ *Neighbor Management-Address +: +${CHASSIS_ID}
  ^ *Neighbor Port-ID +: +${PORT_ID}
  ^ *Neighbor Port-Desc +: +${PORT_DESCRIPTION} -> Record

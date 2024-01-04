@@ -1,5 +1,5 @@
-Value CHASSIS_MODEL (.*)
 Value SERIAL_NUMBER (\w{10})
+Value CHASSIS_MODEL (.*)
 
 Start
  ^ *Chassis: *${CHASSIS_MODEL} *Serial Number: *${SERIAL_NUMBER} -> Record

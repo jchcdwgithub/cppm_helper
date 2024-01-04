@@ -1,5 +1,5 @@
-Value CHASSIS_MODEL ([A-Z0-9]{6})
 Value SERIAL_NUMBER ([A-Z0-9]{10})
+Value CHASSIS_MODEL ([A-Z0-9]{6})
 Value MODULE_NAME (\d/\d+)
 Value DESCRIPTION ([\w ]*)
 

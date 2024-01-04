@@ -1,0 +1,11 @@
+Value INTERFACE (\d/\d/\d{1,3}|vlan\d{1,4}|lag\d{1,4})
+Value ENABLED (yes|no)
+Value STATUS (up|down)
+Value CONFIG_MODE (trunk|access|routed| +)
+Value SPEED ([0-9]+|--)
+Value TYPE ([0-9a-zA-Z-]*)
+Value UNTAGGED (\d{1,4}|--)
+Value REASON ([a-zA-Z ]*)
+
+Start
+ ^ *${INTERFACE} +${UNTAGGED} +${CONFIG_MODE} +${TYPE} +${ENABLED} +${STATUS} +${REASON} +${SPEED}.* -> Record

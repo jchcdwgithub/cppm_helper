@@ -6,6 +6,7 @@ sys.path.append(parent)
 import data_util
 import excel_util
 import file_util
+import data_structures
 import pytest
 
 def test_extract_mac_oui_extracts_half_of_colon_separated_mac():
@@ -547,3 +548,122 @@ def test_create_outputs_ds_creates_expected_ds():
     assert generated['test']['new_headers']['VLAN_ID']['new_name'] == 'VLAN'
     assert generated['test']['new_headers']['IP_ADDRESS']['index'] == 0
     assert generated['test']['new_headers']['IP_ADDRESS']['new_name'] == 'IP'
+
+def test_merge_tables_into_one_returns_a_merged_table_from_two_tables():
+    table1 = (
+        ['header1', 'header2', 'header3'],
+        [
+            ['item1', 'item2', 'item3']
+        ]
+    )
+    table2 = (
+        ['header1', 'header2'],
+        [
+            ['item4', 'item5']
+        ]
+    )
+    tables = [table1, table2]
+    expected = (
+        ['header1', 'header2', 'header3'],
+        [
+            ['item1', 'item2', 'item3'],
+            ['item4', 'item5', '']
+        ]
+    )
+    generated = data_util.merge_tables_into_one_table(tables)
+    assert expected[0] == generated[0]
+    assert expected[1] == expected[1]
+
+def test_process_mgmt_int_information_adds_int_vlan_info_when_vlan_id_is_given():
+    current_device_info = [
+        {
+            'headers' : [
+                'MGMT_IP',
+                'MGMT_SOURCE'
+            ],
+        }
+    ]
+    new_row = ['','']
+    device = [('', '') for _ in data_structures.os_templates['aos-cx']]
+    device[data_structures.os_templates['aos-cx'].index('sh_run_int_vlans.template')] = (['VLAN_ID', 'IP_ADDRESS'], [['33', '10.1.1.33/24']])
+    data_util.process_mgmt_int_information('vlan 33', 'aos-cx', current_device_info,device,new_row)
+    assert new_row[0] == '10.1.1.33/24'
+    assert new_row[1] == 'VLAN 33'
+
+def test_truncate_interface_names_truncates_gigabitethernet_names_iosxe():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['GigabitEthernet1/0/22'],
+            ['TenGigabitEthernet1/0/5'],
+            ['FortyGigabitEthernet1/0/1']
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Gi1/0/22'],
+            ['Te1/0/5'],
+            ['Fo1/0/1']
+        ]
+    )
+    data_util.truncate_interface_names(test_table,'ios-xe')
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row
+
+def test_truncate_interface_names_truncates_port_channel_names_iosxe():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['Port-channel1'],
+            ['Port-channel11']
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Po1'],
+            ['Po11']
+        ]
+    )
+    data_util.truncate_interface_names(test_table,'ios-xe')
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row
+
+def test_truncate_interface_names_truncates_gigabitethernet_names_nxos():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['Ethernet1/22'],
+            ['Ethernet2/5'],
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Eth1/22'],
+            ['Eth2/5'],
+        ]
+    )
+    data_util.truncate_interface_names(test_table,'nx-os')
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row
+
+def test_truncate_interface_names_truncates_port_channel_names_nxos():
+    test_table = (
+        ['INTERFACE'],
+        [
+            ['port-channel1'],
+            ['port-channel11']
+        ]
+    )
+    expected = (
+        ['INTERFACE'],
+        [
+            ['Po1'],
+            ['Po11']
+        ]
+    )
+    data_util.truncate_interface_names(test_table,'nx-os')
+    for e_row,g_row in zip(expected[1],test_table[1]):
+        assert e_row == g_row

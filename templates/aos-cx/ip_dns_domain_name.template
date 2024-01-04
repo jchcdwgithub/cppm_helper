@@ -1,0 +1,4 @@
+Value DOMAIN_NAME ("?.+\.[a-zA-Z]{3}"?)
+
+Start
+ ^ *ip dns domain-name ${DOMAIN_NAME} -> Record

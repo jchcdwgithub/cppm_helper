@@ -1,0 +1,10 @@
+Value INTERFACE ([a-zA-Z]{2}\d/\d/\d{1,2}|Po\d{1,4})
+Value STATUS (connected|notconnect)
+Value NAME ([a-zA-Z0-9- ]*)
+Value VLAN (\d{1,4})
+Value DUPLEX (a-full|full|a-half|half|auto)
+Value SPEED (a-100|a-1000|a-2500|a-5000|a-10000|\d{3-5}|auto)
+Value TYPE (.*)
+
+Start
+ ^ *${INTERFACE} +${NAME} +${STATUS} +${VLAN} +${DUPLEX} +${SPEED} +${TYPE} -> Record

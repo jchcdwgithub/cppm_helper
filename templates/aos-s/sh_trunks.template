@@ -1,0 +1,8 @@
+Value PORT ([a-zA-Z0-9-/]+)
+Value NAME (.*)
+Value TYPE (.*)
+Value Required GROUP (Trk\d{1,4})
+Value LACP (.*)
+
+Start
+ ^ *${PORT} +\| +${NAME} +${TYPE} +\| +${GROUP} +${LACP}.* -> Record

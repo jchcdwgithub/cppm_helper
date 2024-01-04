@@ -4,11 +4,16 @@ import connection_util
 import excel_util
 import file_util
 
+show_commands = {
+    'aos-s' : ['show mac-address', 'show vlan', 'show arp'],
+    'aos-cx' : ['show mac-address', 'show vlan', 'show arp'],
+}
+
 def main():
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
     if os.path.exists(hosts_file):
-        connection_util.gather_information_from_hosts()
+        connection_util.gather_information_from_hosts(show_commands)
 
     supported_os = ['aos-cx', 'aos-s']
 
