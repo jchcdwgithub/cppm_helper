@@ -1,0 +1,7 @@
+Value Required INTERFACE (\d/\d{1,2}/\d{1,2})
+Value INT_STATUS (up|down)
+Value Required TIME_UP ([^(]*)
+
+Start
+ ^ *Interface ${INTERFACE} is ${INT_STATUS}
+ ^ *Link state: +${TIME_UP} -> Record

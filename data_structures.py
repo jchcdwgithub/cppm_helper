@@ -23,6 +23,7 @@ os_templates = {
         'sh_run_int_vlans.template',
         'sh_run_int.template',
         'sh_run_int_lag.template',
+        'sh_interfaces.template',
         'sh_run_vlans.template',
         'sh_system.template',
         'run_radius.template',
@@ -214,6 +215,13 @@ os_tables = {
                         'headers_to_add' : [
                             ('LAG', 'LAG')
                         ]
+                    },
+                    {
+                        'table_name' : 'sh_interfaces',
+                        'table_index' : os_templates['aos-cx'].index('sh_interfaces.template'),
+                        'headers_to_add' : [
+                            ('TIME_UP', 'UP/DOWNTIME')
+                        ]
                     }
                 ],
                 'final_headers' : [
@@ -223,6 +231,7 @@ os_tables = {
                     'NEIGHBOR_DESCRIPTION',
                     'NEIGHBOR_IP',
                     'STATUS',
+                    'UP/DOWNTIME',
                     'CONFIG_MODE',
                     'SPEED',
                     'TYPE',
