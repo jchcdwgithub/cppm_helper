@@ -38,7 +38,7 @@ def main():
                 for os_config_file in os_config_files:
                     config_file = os.path.join(os_directory,os_config_file)
                     config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
-                    if not 'sh_mac_address' in config_tables:
+                    if not 'sh_mac_address' in config_tables and os_name == 'aos-s':
                         old_template_name = f'./templates/{os_name}/sh_mac_address.template'
                         template_files['sh_mac_address'] = f'./templates/{os_name}/sh_mac_address_old_os.template'
                         config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
