@@ -239,7 +239,13 @@ def extract_hostname_from_cli_output(cli_output:list[str]) -> str:
     show_command_line = re.compile(r'.*# *sho?w?')
     for line in cli_output:
         if show_command_line.match(line) is not None:
-            hostname, _ = line.split('#')
+            split_line = line.split('#')
+            if len(split_line) < 2:
+                return ''
+            elif len(split_line) == 2:
+                hostname = split_line[0]
+            else:
+                hostname = split_line[-2]
             return hostname
     return ''
 
@@ -274,7 +280,12 @@ def os_has_no_data_in_tables(tables:dict, os_name:str) -> bool:
 def extract_device_info_from_sh_mac_address(sh_mac_output:list[list[str]], sh_mac_headers:list[str]) -> dict[dict[str, str]]:
     devices = {} 
     mac_index = sh_mac_headers.index('MAC')
-    vlan_index = sh_mac_headers.index('VLAN')
+    if 'VLAN' in sh_mac_headers:
+        vlan_index = sh_mac_headers.index('VLAN')
+    else:
+        vlan_index = -1
+        for line in sh_mac_output:
+            line.append('')
     port_index = sh_mac_headers.index('PORT')
     for line in sh_mac_output:
         current_device = {}

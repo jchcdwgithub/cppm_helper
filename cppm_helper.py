@@ -39,7 +39,14 @@ def main():
                     config_file = os.path.join(os_directory,os_config_file)
                     config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
                     if not 'sh_mac_address' in config_tables:
-                        print(f'No information could be extracted for the show mac-address command in the file {os_config_file}. This is required information. Skipping this file.')
+                        old_template_name = f'./templates/{os_name}/sh_mac_address.template'
+                        template_files['sh_mac_address'] = f'./templates/{os_name}/sh_mac_address_old_os.template'
+                        config_tables = file_util.extract_tables_from_config_file(template_files, config_file, os_config_file)
+                        if not 'sh_mac_address' in config_tables:
+                            print(f'No information could be extracted for the show mac-address command in the file {os_config_file}. This is required information. Skipping this file.')
+                        else:
+                            template_files['sh_mac_address'] = old_template_name
+                            extracted_tables[os_name].append(config_tables)
                     else:
                         extracted_tables[os_name].append(config_tables)
             else:
