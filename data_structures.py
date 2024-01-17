@@ -67,6 +67,9 @@ os_templates = {
         'sh_run_int.template',
         'run_radius.template',
         'snmp_server_host.template',
+    ],
+    'ios' : [
+        'sh_run_int.template',
     ]
 }
 

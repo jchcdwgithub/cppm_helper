@@ -1,0 +1,15 @@
+Value Required INTERFACE (Port-channel\d{1,4}|[a-zA-Z]+bitEthernet\d/\d/\d{1,2})
+Value Required UNTAGGED_VLAN (\d{1,4})
+Value VOICE (\d{1,4})
+Value MODE (access|trunk)
+Value DESCRIPTION (.*)
+Value TAGGED_VLAN (\d{1,4}(,\d{1,4})*)
+
+Start
+ ^ *interface ${INTERFACE}
+ ^ *description +${DESCRIPTION} -> Continue
+ ^ *switchport trunk native vlan ${UNTAGGED_VLAN}
+ ^ *switchport access vlan ${UNTAGGED_VLAN} 
+ ^ *switchport trunk allowed vlan ${TAGGED_VLAN} 
+ ^ *switchport voice vlan ${VOICE}
+ ^ *switchport mode ${MODE} -> Record
