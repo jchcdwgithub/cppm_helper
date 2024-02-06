@@ -70,6 +70,18 @@ os_templates = {
     ],
     'ios' : [
         'sh_run_int.template',
+        'sh_int_desc.template',
+        'sh_cdp_ne_de.template',
+        'sh_int_stats.template',
+        'sh_ver.template',
+        'sh_module.template',
+        'sh_vlan.template',
+        'run_radius.template',
+        'sh_run_int_vlans.template',
+        'sh_run_ip_helper.template',
+        'sh_run_dns.template',
+        'snmp_server_host.template',
+        'ntp_server_ip.template',
     ]
 }
 
@@ -394,6 +406,109 @@ os_tables = {
                 'base_table' : {
                     'base_table_index' : os_templates['ios-xe'].index('sh_module.template'),
                     'headers_to_include' : ['MODEL','SOFTWARE_VERSION', 'SERIAL_NUMBER'],
+                    'key' : 'SERIAL_NUMBER'
+                },
+                'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
+                'convert_table' : True,
+                'matched_parameter_index' : 1
+            }
+        ],
+    },
+    'ios' : {
+        'device_port_table' :
+        [
+            {
+                'table_name' : '',
+                'base_table' : {
+                    'base_table_index' : os_templates['ios'].index('sh_int_desc.template'),
+                    'headers_to_include' : ['INTERFACE', 'STATUS', 'PROTOCOL', 'DESCRIPTION'],
+                    'key': 'INTERFACE'
+                },
+                'parsed_info_to_add': [
+                    {
+                        'table_name' : 'sh_int_stats',
+                        'table_index' : os_templates['ios'].index('sh_int_stats.template'),
+                        'headers_to_add' : [
+                            ('STATUS', 'CONNECTED'),
+                            ('SPEED', 'SPEED'),
+                            ('TYPE', 'TYPE')
+                        ]
+                    },
+                    {
+                        'table_name' : 'cdp_neighbors',
+                        'table_index' : os_templates['ios'].index('sh_cdp_ne_de.template'),
+                        'headers_to_add' : [
+                            ('DEVICE_ID', 'NEIGHBOR_NAME'),
+                            ('PLATFORM', 'NEIGHBOR_DESCRIPTION'),
+                            ('IP_ADDRESS', 'NEIGHBOR_IP')
+                        ]
+                    },
+                    {
+                        'table_name' : 'sh_run_int',
+                        'table_index' : os_templates['ios'].index('sh_run_int.template'),
+                        'headers_to_add' : [
+                            ('UNTAGGED_VLAN', 'NATIVE_VLAN'),
+                            ('TAGGED_VLAN', 'TAGGED_VLAN'),
+                        ]
+                    },
+                    {
+                        'table_name' : 'sh_run_int_lag.template',
+                        'table_index' : os_templates['ios'].index('sh_run_int_lag.template'),
+                        'headers_to_add' : [
+                            ('LAG', 'LAG'),
+                            ('CHANNEL_GROUP', 'CHANNEL_GROUP'),
+                        ]
+                    }
+                ],
+                'final_headers' : [
+                    'INTERFACE',
+                    'DESCRIPTION',
+                    'NEIGHBOR_NAME',
+                    'NEIGHBOR_DESCRIPTION',
+                    'NEIGHBOR_IP',
+                    'PROTOCOL',
+                    'STATUS',
+                    'CONNECTED',
+                    'SPEED',
+                    'TYPE',
+                    'CHANNEL_GROUP',
+                    'LAG',
+                    'NATIVE_VLAN',
+                    'TAGGED_VLAN'
+                ],
+                'convert_table' : True
+            }
+        ],
+        'L2/L3' : [
+            [
+                {
+                    'table_name' : '',
+                    'base_table' : {
+                        'base_table_index' : os_templates['ios'].index('sh_vlan.template'),
+                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME'],
+                        'key' : 'VLAN_ID'
+                    },
+                    'parsed_info_to_add' : [
+                        {
+                            'table_name' : 'sh_run_int_vlans',
+                            'table_index' : os_templates['ios'].index('sh_run_int_vlans.template'),
+                            'headers_to_add' : [
+                                ('IP_ADDRESS', 'IP_ADDRESS')
+                            ]
+                        }
+                    ],
+                    'final_headers' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                    'convert_table' : True
+                }
+            ]
+        ],
+        'system_table' :
+        [
+            {
+                'table_name' : 'system_info',
+                'base_table' : {
+                    'base_table_index' : os_templates['ios'].index('sh_ver.template'),
+                    'headers_to_include' : ['MAC', 'MODEL', 'SERIAL_NUMBER'],
                     'key' : 'SERIAL_NUMBER'
                 },
                 'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
