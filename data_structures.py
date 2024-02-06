@@ -78,6 +78,7 @@ os_templates = {
         'sh_vlan.template',
         'run_radius.template',
         'sh_run_int_vlans.template',
+        'sh_run_int_lag.template',
         'sh_run_ip_helper.template',
         'sh_run_dns.template',
         'snmp_server_host.template',
