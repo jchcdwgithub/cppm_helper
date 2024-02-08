@@ -747,3 +747,30 @@ def extract_hostname_from_show_file(show_file_name:str) -> str:
     else:
         hostname = show_file_name
     return hostname
+
+def add_info_to_ios_systems_table(device, system_table):
+    '''
+    IOS output is either from a chassis switch or not. These require different
+    tables to be used for the MAC and SERIAL_NUMBER information.
+    '''
+    os = 'ios'
+    ver_chassis_idx = data_structures.os_templates[os].index('sh_ver_chassis_switch.template')
+    ver_idx = data_structures.os_templates[os].index('sh_ver.template')
+    chassis_info = device[ver_chassis_idx]
+    if len(chassis_info[1]) > 0:
+        tbl_idx = ver_chassis_idx
+        chassis_info = device[ver_chassis_idx]
+        for blade in chassis_info[1]:
+            if blade[0][0] == '0':
+                blade[0] = blade[0][1:]
+    else:
+        tbl_idx = ver_idx
+    parsed_info_to_add_ios = [{
+        'table_name' : 'sh_ver_chassis_switch',
+        'table_index' : tbl_idx,
+        'headers_to_add' : [
+            ('MAC', 'MAC'),
+            ('SERIAL_NUMBER', 'SERIAL_NUMBER')
+        ]
+    }]
+    system_table[0]['parsed_info_to_add'] = parsed_info_to_add_ios
