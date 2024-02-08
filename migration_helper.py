@@ -7,8 +7,7 @@ import copy
 import data_structures
 
 def main():
-    #supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os', 'ios']
-    supported_oses = ['ios']
+    supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os', 'ios']
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
     if os.path.exists(hosts_file):
