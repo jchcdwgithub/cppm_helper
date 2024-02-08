@@ -9,7 +9,7 @@ The migration_helper script works similarly to the cppm_helper script but it par
 
 ## Where to place the configuration output data
 Both scripts will look for configuration information in a directory called show_files (exact spelling). Create the show_files directory in the same folder where the cppm_helper.py file is then create a directory for each switch vendor OS that you have data for.
-Currently the cppm_helper script only AOS-CX and AOS-S outputs are supported. The migration_helper script supports AOS-CX, AOS-S, IOS-XE and NX-OS. There should be one file per host and ideally, the file will be named what the hostname is.
+Currently the cppm_helper script only AOS-CX and AOS-S outputs are supported. The migration_helper script supports AOS-CX, AOS-S, IOS-XE, IOS and NX-OS. There should be one file per host and ideally, the file will be named what the hostname is.
 Ex.
 ```
 > show_files

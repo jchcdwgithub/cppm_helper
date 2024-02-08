@@ -69,7 +69,7 @@ def main():
                 print(f'gathering IP helper address information for {device_name}...')
                 ip_helper_headers_to_include = ['VLAN_ID', 'IP_HELPER_ADDRESS']
                 if supported_os == 'aos-cx':
-                    data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID', ip_helper_all_systems)
+                    data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_ip_helper.template')], ip_helper_headers_to_include, 'VLAN_ID', ip_helper_all_systems)
                 elif supported_os == 'aos-s':
                     data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
                 elif supported_os == 'ios-xe':
