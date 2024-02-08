@@ -7,7 +7,8 @@ import copy
 import data_structures
 
 def main():
-    supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os', 'ios']
+    #supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os', 'ios']
+    supported_oses = ['aos-cx']
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
     if os.path.exists(hosts_file):
@@ -122,6 +123,8 @@ def main():
             for device_name, device in zip(device_names, results):
                 system_table = copy.deepcopy(data_structures.os_tables[supported_os]['system_table'])
                 if all_systems == {}:
+                    if supported_os == 'ios':
+                        data_util.add_info_to_ios_systems_table(device,system_table)
                     all_systems = data_util.create_column_ds(system_table, device)
                     current_device_headers = all_systems[0]['headers']
                     sys_name_index = current_device_headers.index('SYSTEM_NAME')
@@ -129,6 +132,8 @@ def main():
                     for data_row in current_device_data:
                         data_row[sys_name_index] = device_name
                 else:
+                    if supported_os == 'ios':
+                        data_util.add_info_to_ios_systems_table(device, system_table)
                     current_device_info = data_util.create_column_ds(system_table, device)
                     data_rows = current_device_info[0]['data']
                     current_device_headers = all_systems[0]['headers']
@@ -190,7 +195,8 @@ def main():
                    sh_run_int_index = data_structures.os_templates[supported_os].index('sh_run_int.template')
                    sh_int_lag_table = device[data_structures.os_templates[supported_os].index('sh_run_int_lag.template')]
                    sh_int_table = device[data_structures.os_templates[supported_os].index('sh_run_int.template')]
-                   merged_table = data_util.merge_tables_into_one_table([sh_int_lag_table, sh_int_table])
+                   sh_int_trunk_table = device[data_structures.os_templates[supported_os].index('sh_run_int_trunk.template')]
+                   merged_table = data_util.merge_tables_into_one_table([sh_int_lag_table, sh_int_table, sh_int_trunk_table])
                    device[sh_run_int_index] = merged_table
 
                 device_port_table = copy.deepcopy(data_structures.os_tables[supported_os]['device_port_table'])
