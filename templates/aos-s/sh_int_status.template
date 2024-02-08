@@ -1,5 +1,5 @@
 Value PORT ([a-zA-Z0-9-/]+)
-Value NAME (.*)
+Value NAME ([ -~]*)
 Value STATUS (Up|Down)
 Value CONFIG_MODE (\w*)
 Value SPEED ([0-9a-zA-Z]*)

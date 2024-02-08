@@ -1,0 +1,12 @@
+Value SWITCH (\d{1,4})
+Value MAC ([a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5})
+Value MODEL ([A-Z0-9]+(-[A-Z0-9]+)+)
+Value SERIAL_NUMBER ([A-Za-z0-9]{10,12})
+Value PORTS (\d{1,3})
+Value SOFTWARE_VERSION (\d+(\.\d+(\(\d+\))?[a-zA-Z0-9]*)+)
+
+Start
+ ^ *Base [eE]thernet MAC Address +: +${MAC}
+ ^ *Model [nN]umber +: +${MODEL}
+ ^ *System [sS]erial [nN]umber +: +${SERIAL_NUMBER}
+ ^ *\*? *${SWITCH} +${PORTS} +${MODEL} +${SOFTWARE_VERSION} -> Record

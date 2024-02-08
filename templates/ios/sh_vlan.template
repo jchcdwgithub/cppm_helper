@@ -1,0 +1,6 @@
+Value VLAN_ID (\d{1,4})
+Value VLAN_NAME ([a-zA-Z0-9 -_]+)
+Value STATUS (active)
+
+Start
+ ^ *${VLAN_ID} +${VLAN_NAME} +${STATUS} -> Record

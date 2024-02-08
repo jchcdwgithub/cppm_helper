@@ -720,9 +720,12 @@ def truncate_interface_names(table, os:str):
         interface = data_row[interface_index]
         if 'Ethernet' in interface:
             split_int = interface.split('/')
-            if os == 'ios-xe':
+            if os == 'ios-xe' or os == 'ios':
                 prefix = split_int[0][:2] + split_int[0][-1]
-                new_int_name = prefix + '/' + split_int[1] + '/' + split_int[2]
+                if len(split_int) == 3:
+                    new_int_name = prefix + '/' + split_int[1] + '/' + split_int[2]
+                elif len(split_int) == 2:
+                    new_int_name = prefix + '/' + split_int[1]
             elif os == 'nx-os':
                 prefix = 'Eth' + split_int[0][-1]
                 new_int_name = prefix + '/' + split_int[1]
