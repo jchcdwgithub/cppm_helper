@@ -21,6 +21,7 @@ os_templates = {
         'sh_lldp_in_re_de.template',
         'sh_module.template',
         'sh_run_int_vlans.template',
+        'sh_run_int_ip_helper.template',
         'sh_run_int.template',
         'sh_run_int_trunk.template',
         'sh_run_int_lag.template',
