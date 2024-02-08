@@ -1,6 +1,6 @@
 Value INTERFACE (mgmt0|Eth\d/\d{1,2}|Po\d{1,4}|Lo\d{1,4}|Vlan\d{1,4})
 Value STATUS (connected|notconnec|down|xcvrAbsen)
-Value DESCRIPTION ([a-zA-Z0-9-_ ]*)
+Value DESCRIPTION ([ -~]*)
 Value VLAN (\d{1,4}|routed|trunk)
 Value DUPLEX (a-full|full|a-half|half|auto)
 Value SPEED (a-100|a-1000|a-2500|a-5000|a-10000|\d{3-5}|\d{1,2}G|auto)

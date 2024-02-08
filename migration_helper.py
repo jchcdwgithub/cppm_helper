@@ -7,7 +7,8 @@ import copy
 import data_structures
 
 def main():
-    supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os']
+    #supported_oses = ['aos-cx', 'aos-s', 'ios-xe', 'nx-os', 'ios']
+    supported_oses = ['ios']
     cwd = os.getcwd()
     hosts_file = os.path.join(cwd, 'hosts.yml')
     if os.path.exists(hosts_file):
@@ -76,6 +77,8 @@ def main():
                     data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
                 elif supported_os == 'nx-os':
                     data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_int_vlans.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
+                elif supported_os == 'ios':
+                    data_util.create_base_table(device[data_structures.os_templates[supported_os].index('sh_run_ip_helper.template')], ip_helper_headers_to_include, 'VLAN_ID',ip_helper_all_systems)
 
                 print(f'gathering NTP information for {device_name}...')
                 ntp_ip_headers_to_include = ['NTP_SERVER_IP']
@@ -141,7 +144,10 @@ def main():
 
             all_vlans = set()
             for device in results:
-                device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')]
+                if supported_os == 'ios':
+                    device_vlans = device[data_structures.os_templates[supported_os].index('sh_vlan.template')]
+                else:
+                    device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')]
                 device_vlan_headers = device_vlans[0]
                 device_vlan_data = device_vlans[1]
                 vlan_id_index = device_vlan_headers.index('VLAN_ID')
@@ -151,7 +157,10 @@ def main():
                         all_vlans.add(vlan_id)
 
             for device in results:
-                device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')]
+                if supported_os == 'ios':
+                    device_vlans = device[data_structures.os_templates[supported_os].index('sh_vlan.template')]
+                else:
+                    device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')]
                 device_vlan_headers = device_vlans[0]
                 device_vlan_data = device_vlans[1]
                 vlan_id_index = device_vlan_headers.index('VLAN_ID')
@@ -188,6 +197,11 @@ def main():
                 device_port_table = copy.deepcopy(data_structures.os_tables[supported_os]['device_port_table'])
                 device_port_table[0]['table_name'] = device_name
                 if supported_os == 'ios-xe':
+                    tables_to_convert = ['sh_cdp_ne_de.template', 'sh_run_int.template', 'sh_run_int_lag.template']
+                    for current_table in tables_to_convert:
+                        current_table_to_convert = device[data_structures.os_templates[supported_os].index(current_table)]
+                        data_util.truncate_interface_names(current_table_to_convert, supported_os)
+                if supported_os == 'ios':
                     tables_to_convert = ['sh_cdp_ne_de.template', 'sh_run_int.template', 'sh_run_int_lag.template']
                     for current_table in tables_to_convert:
                         current_table_to_convert = device[data_structures.os_templates[supported_os].index(current_table)]

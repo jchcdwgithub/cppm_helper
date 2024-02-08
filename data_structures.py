@@ -75,6 +75,7 @@ os_templates = {
         'sh_int_stats.template',
         'sh_ver.template',
         'sh_module.template',
+        'sh_ver_chassis_switch.template',
         'sh_vlan.template',
         'run_radius.template',
         'sh_run_int_vlans.template',
@@ -83,6 +84,7 @@ os_templates = {
         'sh_run_dns.template',
         'snmp_server_host.template',
         'ntp_server_ip.template',
+        'ip_dns_server_address.template',
     ]
 }
 
@@ -508,9 +510,9 @@ os_tables = {
             {
                 'table_name' : 'system_info',
                 'base_table' : {
-                    'base_table_index' : os_templates['ios'].index('sh_ver.template'),
-                    'headers_to_include' : ['MAC', 'MODEL', 'SERIAL_NUMBER'],
-                    'key' : 'SERIAL_NUMBER'
+                    'base_table_index' : os_templates['ios'].index('sh_module.template'),
+                    'headers_to_include' : ['SWITCH', 'PORTS', 'MODEL', 'SOFTWARE_VERSION'],
+                    'key' : 'SWITCH'
                 },
                 'final_headers' : ['LOCATION', 'SUB_LOCATION', 'SYSTEM_NAME', 'MGMT_IP', 'MGMT_SOURCE', 'MODEL', 'SERIAL_NUMBER', 'SOFTWARE_VERSION'],
                 'convert_table' : True,

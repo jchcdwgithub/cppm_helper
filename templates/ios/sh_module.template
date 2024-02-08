@@ -1,7 +1,7 @@
 Value SWITCH (\d{1,2})
 Value PORTS (\d{1,3})
 Value MODEL ([A-Z0-9]+(-[A-Z0-9]+)+)
-Value SOFTWARE_VERSION (\d+\.\d+\.\d+[A-Z]+|\d+(\.\d+)+)
+Value SOFTWARE_VERSION (\d+(\.\d+(\(\d+\))?[a-zA-Z0-9]*)+)
 
 Start
  ^ *\*? *${SWITCH} +${PORTS} +${MODEL} +${SOFTWARE_VERSION} -> Record
