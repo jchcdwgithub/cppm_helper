@@ -5,6 +5,8 @@ os_templates = {
         'sh_lldp_in_re_de.template',
         'sh_cdp_ne_de.template',
         'sh_run_vlans.template',
+        'sh_run_vlans_id.template',
+        'sh_run_ip_helper.template',
         'run_radius.template',
         'ip_dns_server_address.template',
         'ip_dns_domain_name.template',
@@ -159,10 +161,20 @@ os_tables = {
                 {
                     'table_name' : '',
                     'base_table' : {
-                        'base_table_index' : os_templates['aos-s'].index('sh_run_vlans.template'),
-                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
+                        'base_table_index' : os_templates['aos-s'].index('sh_run_vlans_id.template'),
+                        'headers_to_include' : ['VLAN_ID', 'VLAN_NAME'],
                         'key' : 'VLAN_ID'
                     },
+                    'parsed_info_to_add' : [
+                        {
+                            'table_name' : 'sh_vlans_ip',
+                            'table_index' : os_templates['aos-s'].index('sh_run_vlans.template'),
+                            'headers_to_add' : [
+                                ('IP_ADDRESS', 'IP_ADDRESS'),
+                                ('SUBNET', 'SUBNET')
+                            ]
+                        }
+                    ],
                     'final_headers' : ['VLAN_ID', 'VLAN_NAME', 'IP_ADDRESS'],
                     'convert_table' : True
                 }
