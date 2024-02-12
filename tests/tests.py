@@ -682,3 +682,24 @@ def test_extract_hostname_from_show_file_returns_filename_with_dots_replaced_by_
     expected = 'HOSTNAME_CLOSET_1'
     generated = data_util.extract_hostname_from_show_file('HOSTNAME.CLOSET.1.log')
     assert expected == generated
+
+def test_remove_trk_info_from_intf_removes_everything_beyond_dash():
+    test_data = (
+        ['PORT'],
+        [
+            ['1/1-Trk1'],
+            ['A2-Trk10'],
+            ['2/A1-...'],
+            ['1-Trk111']
+        ]
+    )
+    expected = [
+        ['1/1'],
+        ['A2'],
+        ['2/A1'],
+        ['1']
+    ]
+    data_util.remove_trk_info_from_intf(test_data)
+    generated = test_data[1]
+    for e_row, g_row in zip(expected, generated):
+        assert e_row == g_row

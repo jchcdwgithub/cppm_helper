@@ -1,12 +1,7 @@
 Value Required VLAN_ID (\d{1,4})
-Value VLAN_NAME (.*)
-Value IP_ADDRESS (\d{1,3}(\.\d{1,3}){3})
+Value Required IP_ADDRESS (\d{1,3}(\.\d{1,3}){3})
 Value SUBNET (\d{1,3}(\.\d{1,3}){3})
-Value List IP_HELPER_ADDRESS (\d{1,3}(\.\d{1,3}){3})
 
 Start
  ^vlan ${VLAN_ID}
- ^ *name "${VLAN_NAME}"
- ^ *ip address ${IP_ADDRESS} ${SUBNET} -> Continue
- ^ *ip helper-address ${IP_HELPER_ADDRESS} -> Continue
- ^ *exit -> Record
+ ^ *ip address ${IP_ADDRESS} ${SUBNET} -> Record

@@ -774,3 +774,19 @@ def add_info_to_ios_systems_table(device, system_table):
         ]
     }]
     system_table[0]['parsed_info_to_add'] = parsed_info_to_add_ios
+
+def remove_trk_info_from_intf(int_table:tuple[list[str],list[str]]):
+    '''
+    AOS-S interfaces in certain show outputs append trunk (LAG) information
+    to the interface names. This function removes that information from the
+    interface name.
+    Removes either -Trk\d+ or -...
+    '''
+    table_headers, table_data = int_table
+    port_index = table_headers.index('PORT')
+    for row in table_data:
+        port_name = row[port_index]
+        if '-' in port_name:
+            split_port_name = port_name.split('-')
+            new_name = split_port_name[0]
+            row[port_index] = new_name
