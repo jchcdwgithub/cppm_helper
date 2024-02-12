@@ -1,7 +1,7 @@
 Value Required PORT ([a-zA-Z0-9]+([\/-][a-zA-Z0-9\.]+)*)
 Value NAME ([ -~]*)
 Value STATUS (Up|Down)
-Value CONFIG_MODE (\w*)
+Value CONFIG_MODE ([\w-]*)
 Value SPEED ((\d+[a-zA-Z]+)*)
 Value TYPE ((\d+[a-zA-Z]*)*(-[a-zA-Z0-9]+)*(\/[a-zA-Z0-9]+)*)
 Value TAGGED (\d+|multi|No)
