@@ -1,0 +1,10 @@
+Value VLAN (\d{1,4})
+Value MAC ([a-fA-F0-9]{4}(\.[a-fA-F0-9]{4}){2})
+Value TYPE (static|dynamic)
+Value AGE (\d+)
+Value SECURE (T|F)
+Value NTFY (T|F)
+Value PORT ([a-zA-Z]{2,3}\d+(\/\d+)*)
+
+Start
+ ^ *[\*+] +${VLAN} +${MAC} +${TYPE} +${AGE} +${SECURE} +${NTFY} +${PORT} -> Record

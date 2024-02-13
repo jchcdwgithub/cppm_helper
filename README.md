@@ -9,7 +9,7 @@ The migration_helper script works similarly to the cppm_helper script but it par
 
 ## Where to place the configuration output data
 Both scripts will look for configuration information in a directory called show_files (exact spelling). Create the show_files directory in the same folder where the cppm_helper.py file is then create a directory for each switch vendor OS that you have data for.
-Currently the cppm_helper script only AOS-CX and AOS-S outputs are supported. The migration_helper script supports AOS-CX, AOS-S, IOS-XE, IOS and NX-OS. There should be one file per host and ideally, the file will be named what the hostname is.
+Both the cppm_helper and migration_helper scripts support AOS-CX, AOS-S, IOS-XE, IOS and NX-OS. There should be one file per host and ideally, the file will be named what the hostname is.
 Ex.
 ```
 > show_files
@@ -27,8 +27,8 @@ The switch OS names need to be exact. Currently supported folder names are: aos-
 
 ## Automatic information gathering
 If there is connectivity to the host(s) from the machine where the scripts will be executing then a hosts.yml file can be created in the main directory.
-This is where the cppm_helper.py and migration_helper.py files reside. List the hosts and their information in the hosts.yml file, again under a specific vendor OS. Currently the cppm_helper script
-only AOS-CX and AOS-S hosts are supported while the migration_helper script also supports IOS-XE and NX-OS hosts. With this information, the cppm_helper script will SSH into each host listed and gather three pieces of information: show vlan,
+This is where the cppm_helper.py and migration_helper.py files reside. List the hosts and their information in the hosts.yml file, again under a specific vendor OS.
+With this information, the cppm_helper script will SSH into each host listed and gather three pieces of information: show vlan,
 show mac-address and show arp. These files will be saved in the show_files directory. Each filename will be the hostname of the host it was derived from.
 The migration_helper script runs a variety of show commands which are specific to the OS. Generally CDP, LLDP, module, VLANs, version, inventory and other information will be gathered.
 

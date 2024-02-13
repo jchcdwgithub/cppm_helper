@@ -5,8 +5,11 @@ import excel_util
 import file_util
 
 show_commands = {
-    'aos-s' : ['show mac-address', 'show vlan', 'show arp'],
+    'aos-s' : ['show mac-address', 'show run', 'show arp'],
     'aos-cx' : ['show mac-address', 'show vlan', 'show arp'],
+    'ios' : ['show mac-address', 'show run', 'show ip arp'],
+    'ios-xe' : ['show mac-address', 'show run', 'show ip arp'],
+    'nx-os' : ['show mac-address', 'show run', 'show ip arp'],
 }
 
 def main():
@@ -15,7 +18,14 @@ def main():
     if os.path.exists(hosts_file):
         connection_util.gather_information_from_hosts(show_commands)
 
-    supported_os = ['aos-cx', 'aos-s']
+    supported_os = ['aos-s', 'aos-cx', 'ios', 'ios-xe', 'nx-os']
+    show_vlan_os_template = {
+        'aos-cx' : 'sh_vlan.template',
+        'aos-s' : 'sh_run_vlans_id.template',
+        'ios' : 'sh_vlan.template',
+        'ios-xe' : 'sh_run_vlans.template',
+        'nx-os' : 'sh_run_vlans.template',
+    }
 
     config_files_directory = os.path.join(cwd, 'show_files')
     if not os.path.exists(config_files_directory):
@@ -26,7 +36,7 @@ def main():
         template_files = {
             'sh_mac_address':f'./templates/{os_name}/sh_mac_address.template',
             'sh_arp':f'./templates/{os_name}/sh_arp.template',
-            'sh_vlan':f'./templates/{os_name}/sh_vlan.template'
+            'sh_vlan':f'./templates/{os_name}/{show_vlan_os_template[os_name]}'
             }
         if not os_name in supported_os:
             print(f'Found unsupported os in show_files or non-directory in show_files. Skipping {os_name}')

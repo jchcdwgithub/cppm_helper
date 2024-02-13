@@ -115,6 +115,8 @@ def write_tables_to_excel_worksheets(excel_filename: str, worksheet_names:list[s
     with pandas.ExcelWriter(excel_filename) as writer:
         workbook = writer.book
         for worksheet_name,tables in zip(worksheet_names,tables_sets):
+            if len(worksheet_name) > 31:
+                worksheet_name = worksheet_name[:31]
             worksheet = workbook.add_worksheet(worksheet_name)
             writer.sheets[worksheet_name] = worksheet
             table_title_cell_format = workbook.add_format({'bg_color': '#D9D9D9', 'font_size': 16, 'bold':True})
