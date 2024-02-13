@@ -45,7 +45,7 @@ def test_extract_device_information_from_sh_mac_address_creates_a_dictionary_wit
 
 def test_add_ip_information_to_devices_adds_ip_information_if_it_exists():
     sh_line = [['10.10.90.20', '54:04:a6:0b:f8:51','vlan90','1/1/25']]
-    sh_line_headers = ['IP','MAC','PORT','PHYSICAL_PORT']
+    sh_line_headers = ['IP_ADDRESS','MAC','PORT','PHYSICAL_PORT']
     mac = '54:04:a6:0b:f8:51'
     devices = {mac : { 'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25'} }
     expected = {mac : {'vlan':'90', 'type': 'dynamic', 'physical_port':'1/1/25', 'ip' : '10.10.90.20'}}
