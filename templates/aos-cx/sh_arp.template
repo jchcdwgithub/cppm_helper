@@ -1,7 +1,7 @@
-Value IP (\d{1,3}(\.\d{1,3}){3})
+Value IP_ADDRESS (\d{1,3}(\.\d{1,3}){3})
 Value MAC ([0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5})
 Value PORT (vlan\d+|\d/\d/\d+)
 Value PHYSICAL_PORT (\d/\d/\d+)
 
 Start
- ^${IP} +${MAC} +${PORT} +${PHYSICAL_PORT}.* -> Record
+ ^${IP_ADDRESS} +${MAC} +${PORT} +${PHYSICAL_PORT}.* -> Record

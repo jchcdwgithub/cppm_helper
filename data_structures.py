@@ -57,6 +57,7 @@ os_templates = {
     ],
     'nx-os' : [
         'sh_cdp_ne_de.template',
+        'sh_mac_address.template',
         'sh_int_desc_eth.template',
         'sh_int_stats.template',
         'sh_module.template',

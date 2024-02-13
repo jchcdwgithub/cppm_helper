@@ -297,7 +297,7 @@ def extract_device_info_from_sh_mac_address(sh_mac_output:list[list[str]], sh_ma
 
 def add_ip_information_to_devices(arp_info:list[list[str]], arp_info_headers:list[str], devices:dict[dict[str, str]]) -> None:
     mac_index = arp_info_headers.index('MAC')
-    ip_index = arp_info_headers.index('IP')
+    ip_index = arp_info_headers.index('IP_ADDRESS')
     for arp_entry in arp_info:
         current_mac = arp_entry[mac_index]
         current_ip = arp_entry[ip_index]
@@ -471,7 +471,7 @@ def create_host_vlan_table(host):
     vlan_table_headers = ['VLAN', 'VLAN_NAME', 'HEX', 'DECIMAL']
     sh_vlan_headers = host['sh_vlan']['headers']
     sh_vlan_data = host['sh_vlan']['results']
-    vlan_index = sh_vlan_headers.index('VLAN')
+    vlan_index = sh_vlan_headers.index('VLAN_ID')
     vlan_name_index = sh_vlan_headers.index('VLAN_NAME')
     vlan_table_data = []
     for row in sh_vlan_data:
