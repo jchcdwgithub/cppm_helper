@@ -453,6 +453,8 @@ def create_host_vlan_table_from_sh_mac_address_info(host):
     vlans = set()
     for mac in devices:
         vlan = devices[mac]['vlan']
+        if vlan == '':
+            vlan = '0'
         if not vlan in vlans:
             vlans.add(vlan)
             vlan_name = 'VLAN'+vlan
