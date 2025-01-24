@@ -44,6 +44,7 @@ os_templates = {
         'sh_etherchannel_sum.template',
         'sh_module.template',
         'sh_run_vlans.template',
+        'sh_vlans.template',
         'sh_run_int.template',
         'sh_run_int_lag.template',
         'sh_run_int_vlans.template',
@@ -54,6 +55,9 @@ os_templates = {
         'snmp_server_host.template',
         'run_radius.template',
         'ntp_server_ip.template',
+        'sh_arp.template',
+        'sh_mac_address.template',
+        'sh_run_domain_name.template'
     ],
     'nx-os' : [
         'sh_cdp_ne_de.template',
@@ -90,6 +94,9 @@ os_templates = {
         'snmp_server_host.template',
         'ntp_server_ip.template',
         'ip_dns_server_address.template',
+        'sh_arp.template',
+        'sh_mac_address.template',
+        'sh_run_ip_helper.template'
     ]
 }
 

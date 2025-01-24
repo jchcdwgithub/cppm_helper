@@ -145,7 +145,6 @@ def main():
             overview_tables.append(all_systems)
             tables.append(overview_tables)
 
-            all_vlans = set()
             for device in results:
                 if supported_os == 'ios':
                     device_vlans = device[data_structures.os_templates[supported_os].index('sh_vlan.template')]
@@ -153,21 +152,9 @@ def main():
                     device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans_id.template')]
                 else:
                     device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')]
-                device_vlan_headers = device_vlans[0]
-                device_vlan_data = device_vlans[1]
-                vlan_id_index = device_vlan_headers.index('VLAN_ID')
-                for vlan in device_vlan_data:
-                    vlan_id = vlan[vlan_id_index]
-                    if not vlan_id in all_vlans:
-                        all_vlans.add(vlan_id)
-
-            for device in results:
-                if supported_os == 'ios':
-                    device_vlans = device[data_structures.os_templates[supported_os].index('sh_vlan.template')]
-                elif supported_os == 'aos-s':
-                    device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans_id.template')]
-                else:
-                    device_vlans = device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')]
+                    if len(device_vlans[1]) == 0 and supported_os == 'ios-xe':
+                        device_vlans = device[data_structures.os_templates[supported_os].index('sh_vlans.template')]
+                        device[data_structures.os_templates[supported_os].index('sh_run_vlans.template')] = device_vlans
                 device_vlan_headers = device_vlans[0]
                 device_vlan_data = device_vlans[1]
                 vlan_id_index = device_vlan_headers.index('VLAN_ID')
@@ -175,12 +162,6 @@ def main():
                 for vlan in device_vlan_data:
                     vlan_id = vlan[vlan_id_index]
                     device_vlans.add(vlan_id)
-                for vlan in all_vlans:
-                    if not vlan in device_vlans:
-                        vlan_row = [vlan]
-                        for _ in device_vlan_headers[1:]:
-                            vlan_row.append('')
-                        device_vlan_data.append(vlan_row)
                 device_vlan_data.sort(key=lambda x : int(x[0]))
 
             vlan_tables = []

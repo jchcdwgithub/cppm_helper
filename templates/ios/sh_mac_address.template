@@ -1,7 +1,9 @@
 Value VLAN (\d{1,4})
 Value MAC ([a-fA-F0-9]{4}(\.[a-fA-F0-9]{4}){2})
-Value TYPE (STATIC|DYNAMIC)
+Value TYPE (static|dynamic)
+Value LEARN (Yes|No)
+Value AGE (\d+|-)
 Value PORT ([a-zA-Z]{2}\d+(\/\d+)*)
 
 Start
- ^ *${VLAN} +${MAC} +${TYPE} +${PORT} -> Record
+ ^ *${VLAN} +${MAC} +${TYPE} +${LEARN} +${AGE} +${PORT} -> Record
