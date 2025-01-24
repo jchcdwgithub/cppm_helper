@@ -1,10 +1,10 @@
 Value SWITCH (\d{1,2})
 Value PORTS (\d{1,3})
-Value MODEL (C\d+-\d+[a-zA-Z]+)
+Value MODEL ((WS-)?C\d+-\d+[a-zA-Z]+(-[a-zA-Z0-9]+)*)
 Value SERIAL_NUMBER ([A-Z0-9]{11})
 Value MAC ([a-f0-9]{4}(\.[a-f0-9]{4}){2})
 Value HW_VERSION (V\d+)
-Value SOFTWARE_VERSION (\d{2}\.\d{1,2}\.\d{1,2})
+Value SOFTWARE_VERSION (\d{2}\.\d{1,2}\.\d{1,2}[a-zA-Z]*)
 
 Start
  ^ *${SWITCH} +${PORTS} +${MODEL} +${SERIAL_NUMBER} +${MAC} +${HW_VERSION} +${SOFTWARE_VERSION} -> Record
